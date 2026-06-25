@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Cartographie interactive des acteurs — Celtic Interconnector</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#f8fafc;--panel:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+header{height:92px;padding:18px 26px;color:#fff;background:linear-gradient(135deg,#0f172a,#334155)}
+header h1{margin:0 0 6px;font-size:22px;letter-spacing:-.02em}
+header p{margin:0;color:#cbd5e1;font-size:14px;line-height:1.45;max-width:1200px}
+#wrap{height:calc(100vh - 92px);display:grid;grid-template-columns:300px 1fr 340px;gap:14px;padding:14px}
+aside,#chart,#details{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 28px rgba(15,23,42,.05);overflow:hidden}
+aside,#details{padding:16px;overflow:auto}
+#chart{position:relative}
+.hint{color:var(--muted);font-size:13px;line-height:1.4;padding:10px;border:1px dashed var(--border);border-radius:12px;background:#f8fafc;margin-bottom:14px}
+input[type="text"]{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:12px;font-size:14px;outline:none}
+input[type="text"]:focus{border-color:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.22)}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 14px}
+button{border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px 9px;cursor:pointer;font-size:13px;font-weight:650}
+button:hover{background:#f1f5f9}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#475569;font-weight:800;margin:8px 0}
+#checks label{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:13px;cursor:pointer}
+.legend-dot{width:11px;height:11px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.count{font-size:13px;color:#475569;border-top:1px solid var(--border);padding-top:12px;margin-top:14px}
+svg{width:100%;height:100%;display:block;cursor:grab;background:radial-gradient(circle at 28% 24%,rgba(37,99,235,.08),transparent 28%),radial-gradient(circle at 76% 68%,rgba(245,158,11,.10),transparent 32%),#f8fafc}
+svg.grabbing{cursor:grabbing}
+.link{stroke:#94a3b8;stroke-opacity:.42;stroke-width:1.2}
+.link.hidden,.node.hidden{display:none}
+.node circle{stroke:#fff;stroke-width:2.2px;filter:drop-shadow(0 2px 6px rgba(15,23,42,.18));cursor:pointer}
+.node text{font-size:11px;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round;fill:#0f172a;pointer-events:none;text-anchor:middle}
+.node.dim,.link.dim{opacity:.12}
+.selected circle{stroke:#0f172a;stroke-width:3.4px}
+.link.highlight{stroke-opacity:.9;stroke-width:2.6}
+#details h2{margin:0 0 8px;font-size:20px;line-height:1.25}
+.pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;color:#fff;padding:5px 9px;font-size:12px;font-weight:750;margin-bottom:12px}
+#details h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#475569;margin:14px 0 6px;border-top:1px solid var(--border);padding-top:12px}
+#details p{font-size:14px;line-height:1.45;margin:0;white-space:pre-line}
+.mini{color:var(--muted);font-size:12px;margin-top:14px}
+.tooltip{position:absolute;pointer-events:none;background:#0f172a;color:#fff;padding:8px 10px;border-radius:9px;font-size:12px;opacity:0;transform:translate(-50%,-120%);z-index:5;max-width:280px}
+@media(max-width:1050px){#wrap{grid-template-columns:260px 1fr}#details{display:none}}
+</style>
+</head>
+<body>
+<header>
+<h1>Cartographie interactive des acteurs — Celtic Interconnector</h1>
+<p>Projet d’interconnexion électrique France-Irlande : porteurs industriels, institutions européennes, élus irlandais, experts énergie, médias et points de vigilance documentés.</p>
+</header>
+
+<div id="wrap">
+<aside>
+  <div class="hint">Utilisation : recherche, filtres par famille, clic sur un nœud pour ouvrir sa fiche. Les nœuds sont déplaçables ; molette = zoom.</div>
+  <input id="search" type="text" placeholder="Rechercher un acteur, une position, une preuve…">
+  <div class="btnrow"><button id="reset">Réinitialiser</button><button id="center">Recentrer</button></div>
+  <div class="section-title">Filtres</div>
+  <div id="checks"></div>
+  <div class="count" id="count"></div>
+</aside>
+
+<main id="chart">
+  <div class="tooltip" id="tooltip"></div>
+  <svg id="svg" aria-label="Cartographie interactive des acteurs" viewBox="0 0 974 770"></svg>
+</main>
+
+<section id="details">
+  <h2>Celtic Interconnector</h2>
+  <span class="pill" style="background:#111827">Projet central</span>
+  <p>Projet d’interconnexion électrique France-Irlande, reliant les réseaux électriques français et irlandais.</p>
+  <p class="mini">Lecture rapide : plus le nœud est gros, plus l’acteur est structurant dans le corpus.</p>
+</section>
+</div>
+
+<script>
+// -----> DONNÉES INTÉGRÉES CORRESPONDANT AU CORPUS <-----
+const graphData = {
+  "nodes": [
+    {"id": "Celtic Interconnector", "label": "Celtic\nInterconnector", "group": "Projet central", "size": 32, "detail": "Projet d’interconnexion électrique France-Irlande, reliant les réseaux électriques français et irlandais.", "position": "Projet central.", "evidence": "Le corpus est consacré au projet d’interconnexion électrique France-Irlande."},
+    {"id": "Malcolm Byrne", "label": "Malcolm\nByrne", "group": "Élus opposés / critiques", "size": 19, "detail": "Fianna Fáil TD pour Wexford/Wicklow.", "position": "Critique / inquiet sur le manque de clarté du calendrier et l’impact possible sur les objectifs offshore.", "evidence": "Il se dit « stunned » de ne pas obtenir de date d’achèvement et estime que le gouvernement doit être « realistic » sur l’impact potentiel sur les objectifs offshore."},
+    {"id": "Jennifer Whitmore", "label": "Jennifer\nWhitmore", "group": "Élus opposés / critiques", "size": 18, "detail": "Social Democrats TD.", "position": "Inquiète / interrogative sur le retard.", "evidence": "Elle rappelle que l’interconnexion est nécessaire pour « export electricity, but also in the event that we need to import it » et demande pourquoi elle est retardée."},
+    {"id": "Roderic O’Gorman", "label": "Roderic\nO’Gorman", "group": "Élus favorables / prudents", "size": 15, "detail": "Green Party TD for Dublin West.", "position": "Acteur parlementaire demandeur d’information ; position non explicitement opposée.", "evidence": "Il reçoit une mise à jour du ministre Darragh O’Brien sur le projet. Le document ne lui attribue pas de grief direct."},
+    {"id": "Micheál Martin", "label": "Micheál\nMartin", "group": "Élus favorables / prudents", "size": 18, "detail": "Taoiseach.", "position": "Prudent / informé de difficultés techniques.", "evidence": "Il indique avoir été informé par EirGrid et l’ambassade de France de « technical issues » susceptibles de retarder le projet."},
+    {"id": "Darragh O’Brien", "label": "Darragh\nO’Brien", "group": "Élus favorables / prudents", "size": 19, "detail": "Energy Minister.", "position": "Institutionnel / explicatif.", "evidence": "Il évoque un projet « significant and complex » dans un environnement maritime difficile, et rapporte des progrès plus lents qu’attendu dus aux conditions du fond marin et à la protection des câbles."},
+    {"id": "Timmy Dooley", "label": "Timmy\nDooley", "group": "Élus favorables / prudents", "size": 15, "detail": "Minister of State, Department of Climate, Energy and the Environment ; Fine Gael TD.", "position": "Position non établie ; destinataire d’une interpellation.", "evidence": "Malcolm Byrne lui reproche de ne pas savoir quand le connecteur serait opérationnel."},
+    {"id": "Uplift", "label": "Uplift", "group": "Collectifs citoyens", "size": 18, "detail": "Mouvement citoyen irlandais.", "position": "Porte une campagne contre l’expansion des data centers ; non identifié comme opposant au Celtic Interconnector.", "evidence": "Le document précise qu’Uplift critique les impacts des data centers sur le système électrique et n’est pas opposant au Celtic Interconnector."},
+    {"id": "Don’t let Big Tech steal our light", "label": "Don’t let\nBig Tech steal\nour light", "group": "Collectifs citoyens", "size": 16, "detail": "Campagne citoyenne liée à Uplift.", "position": "Critique de la consommation électrique des multinationales du numérique ; demande de moratoire sur les data centers.", "evidence": "La campagne vise un moratoire sur l’ouverture de sites et critique la pression des data centers sur le système électrique."},
+    {"id": "SECAD Partnership CLG", "label": "SECAD\nPartnership CLG", "group": "Institutions publiques", "size": 16, "detail": "Administrateur / accompagnateur de fonds communautaire.", "position": "Gestion et accompagnement du Celtic Interconnector Community Benefit Fund.", "evidence": "Contact d’aide pour les candidatures au fonds communautaire."},
+    {"id": "Community groups / not-for-profit organisations in east Cork", "label": "Community groups\nnot-for-profit\nEast Cork", "group": "Collectifs citoyens", "size": 15, "detail": "Acteurs locaux bénéficiaires.", "position": "Bénéficiaires du Community Benefit Fund.", "evidence": "29 groupes et organisations reçoivent 838 987 € dans le cadre du fonds associé au projet."},
+    {"id": "EirGrid", "label": "EirGrid", "group": "Porteurs du projet", "size": 26, "detail": "Gestionnaire public irlandais du réseau électrique.", "position": "Co-porteur du projet ; responsable côté irlandais ; finance 65 % du coût final selon l’article.", "evidence": "Confirme les retards liés à la fabrication, aux conditions marines et au terrain sous-marin difficile ; indique que les coûts additionnels relèvent de négociations commerciales en cours."},
+    {"id": "RTE / Réseau de Transport d’Électricité", "label": "RTE\nRéseau de Transport\nd’Électricité", "group": "Porteurs du projet", "size": 26, "detail": "Gestionnaire français du réseau de transport d’électricité.", "position": "Co-porteur côté français.", "evidence": "Présente le projet comme une interconnexion stratégique renforçant sécurité d’approvisionnement, solidarité électrique, intégration des renouvelables et souveraineté européenne."},
+    {"id": "Régis Boigegrain", "label": "Régis\nBoigegrain", "group": "Porteurs du projet", "size": 17, "detail": "Directeur général de la division gestion des infrastructures, membre du directoire de RTE.", "position": "Porte-parole RTE.", "evidence": "Déclare que le lancement de la phase française constitue une « decisive milestone » et que la liaison renforce sécurité d’approvisionnement, solidarité électrique et intégration des renouvelables."},
+    {"id": "Rémi Courtial", "label": "Rémi\nCourtial", "group": "Porteurs du projet", "size": 17, "detail": "Directeur du projet Celtic Interconnector pour RTE.", "position": "Responsable projet côté RTE.", "evidence": "Défend le projet comme acte de souveraineté européenne : « Se soutenir entre pays européens reste un acte de souveraineté. Chacun profite de l’énergie décarbonée des autres »."},
+    {"id": "Nexans", "label": "Nexans", "group": "Acteurs économiques / industriels", "size": 22, "detail": "Industriel / câblier.", "position": "Ingénierie, fabrication et installation du système de câbles.", "evidence": "Responsable du système complet de câbles ; câbles HV fabriqués à Halden, câbles terrestres à Charleroi, accessoires à Cortaillod."},
+    {"id": "Siemens Energy", "label": "Siemens\nEnergy", "group": "Acteurs économiques / industriels", "size": 20, "detail": "Entreprise industrielle énergie.", "position": "Construction / équipements de station de conversion avec NGE.", "evidence": "Intervient sur la station d’Ar Merzher ; entre dans la phase finale de mise en service des équipements."},
+    {"id": "Alexandre Pinson", "label": "Alexandre\nPinson", "group": "Acteurs économiques / industriels", "size": 15, "detail": "Chef de projet Siemens Energy.", "position": "Responsable projet station de conversion.", "evidence": "Dit être fier d’avoir achevé l’infrastructure de la station Ar Merzher avec des partenaires locaux pour RTE."},
+    {"id": "NGE", "label": "NGE", "group": "Acteurs économiques / industriels", "size": 20, "detail": "Groupe français de construction / BTP.", "position": "Réalisation de la station de conversion d’Ar Merzher avec Siemens Energy.", "evidence": "Présente le chantier comme un projet complexe au service de la souveraineté énergétique européenne et de la transition écologique."},
+    {"id": "Stéphane Perez", "label": "Stéphane\nPerez", "group": "Acteurs économiques / industriels", "size": 15, "detail": "Directeur général de NGE.", "position": "Porte-parole NGE.", "evidence": "Estime que le chantier illustre la capacité de NGE à coordonner des expertises au service de la souveraineté énergétique européenne."},
+    {"id": "Eiffage Énergie Systèmes", "label": "Eiffage\nÉnergie Systèmes", "group": "Acteurs économiques / industriels", "size": 19, "detail": "Entreprise énergie / réseaux.", "position": "Travaux de liaison terrestre côté français pour Nexans / RTE.", "evidence": "Pose de câbles HVDC, tranchées, fourreaux, raccordement à la station de La Martyre."},
+    {"id": "Hervé Burel", "label": "Hervé\nBurel", "group": "Acteurs économiques / industriels", "size": 14, "detail": "Chef de projet Eiffage Énergie Systèmes – Réseaux & Solutions.", "position": "Responsable travaux.", "evidence": "Décrit les 21 premiers km construits par ses équipes et des mesures de décarbonation du chantier."},
+    {"id": "Vincent Morice", "label": "Vincent\nMorice", "group": "Acteurs économiques / industriels", "size": 14, "detail": "Chef de projet EES / Eiffage Énergie Systèmes – Île-de-France.", "position": "Responsable pose câbles.", "evidence": "Décrit la pose par tronçons de modules composés de deux câbles de puissance, fibres optiques et câbles de réserve."},
+    {"id": "DLE Ouest", "label": "DLE Ouest", "group": "Acteurs économiques / industriels", "size": 15, "detail": "Entreprise travaux.", "position": "Réalisation d’un tronçon de liaison souterraine.", "evidence": "Construit la seconde section de la liaison souterraine jusqu’à la station de conversion."},
+    {"id": "Eiffage Génie Civil / Eiffage Fondations", "label": "Eiffage Génie Civil\nEiffage Fondations", "group": "Acteurs économiques / industriels", "size": 15, "detail": "Entreprises travaux.", "position": "Microtunnels et génie civil.", "evidence": "Forage sous la LGV Paris-Brest et sous l’Élorn ; participation aux infrastructures terrestres."},
+    {"id": "Van Oord", "label": "Van Oord", "group": "Acteurs économiques / industriels", "size": 16, "detail": "Entreprise maritime.", "position": "Opérations de câbles pour Nexans / CIDAC.", "evidence": "Réalise des opérations de câbles dans la mer Celtique ; demande aux marins de respecter un large périmètre de sécurité."},
+    {"id": "CIDAC / Celtic Interconnector Designated Activity Company", "label": "CIDAC\nCeltic Interconnector\nDesignated Activity Company", "group": "Porteurs du projet", "size": 19, "detail": "Structure projet.", "position": "Maîtrise / structure de projet mentionnée pour opérations et contrats.", "evidence": "Associée aux opérations de réparation ou câblage ; Assystem reçoit un contrat d’assistance à maîtrise d’ouvrage auprès de CIDAC."},
+    {"id": "Assystem", "label": "Assystem", "group": "Acteurs économiques / industriels", "size": 16, "detail": "Groupe d’ingénierie.", "position": "Assistance à maîtrise d’ouvrage.", "evidence": "Contrat auprès de CIDAC pour accompagner conception et construction de la station de conversion française."},
+    {"id": "Commission européenne / Union européenne", "label": "Commission européenne\nUnion européenne", "group": "Institutions publiques", "size": 22, "detail": "Institution européenne.", "position": "Financeur / soutien au projet.", "evidence": "Projet reconnu d’intérêt commun ; subvention mentionnée de 530 M€, 560 M€ ou 800 M€ selon les articles du corpus, constituant une incohérence documentaire à signaler."},
+    {"id": "CINEA", "label": "CINEA", "group": "Institutions publiques", "size": 15, "detail": "Agence européenne.", "position": "Soutien institutionnel.", "evidence": "Mentionnée comme agence européenne soutenant le projet."},
+    {"id": "Commission for Regulation of Utilities / CRU", "label": "Commission for\nRegulation of Utilities\nCRU", "group": "Institutions publiques", "size": 18, "detail": "Régulateur irlandais.", "position": "Autorité de régulation des coûts et charges réseau.", "evidence": "EirGrid devra obtenir son autorisation pour intégrer de nouvelles charges liées au projet."},
+    {"id": "Alan McSweeney", "label": "Alan\nMcSweeney", "group": "Experts / chercheurs", "size": 18, "detail": "Consultant spécialisé en coûts de projet.", "position": "Expert / analyste critique des coûts.", "evidence": "Estime que le coût final pourrait atteindre 2,1 à 2,8 Md€, sur la base de documents publics EirGrid et CRU."},
+    {"id": "Barry Hayes", "label": "Barry\nHayes", "group": "Experts / chercheurs", "size": 18, "detail": "Associate professor in electrical power systems, UCC.", "position": "Expert énergie.", "evidence": "Juge le retard défavorable aux consommateurs : « This is bad news for electricity consumers » ; estime que Celtic améliorerait la sécurité d’approvisionnement et exercerait une pression à la baisse sur les prix."},
+    {"id": "Paul Cuffe", "label": "Paul\nCuffe", "group": "Experts / chercheurs", "size": 17, "detail": "Associate professor, UCD School of Electrical and Electronic Engineering.", "position": "Expert énergie.", "evidence": "Qualifie le retard de « frustrating » et souligne l’intérêt d’une alternative en cas de hausse des prix du gaz."},
+    {"id": "Paul Leahy", "label": "Paul\nLeahy", "group": "Experts / chercheurs", "size": 17, "detail": "Senior lecturer in wind energy, UCC.", "position": "Expert énergie / éolien.", "evidence": "Alerte sur le resserrement entre capacity d’approvisionnement et demande, notamment avec la croissance des data centers."},
+    {"id": "news.google.com", "label": "news.google.com", "group": "Médias / sources", "size": 12, "detail": "Agrégateur / reprise de presse.", "position": "Source de nombreuses reprises d’articles du corpus.", "evidence": "Le corpus comporte de nombreuses reprises de presse via news.google.com."},
+    {"id": "The Irish Times", "label": "The Irish\nTimes", "group": "Médias / sources", "size": 13, "detail": "Presse irlandaise.", "position": "Article sur les coûts possibles liés aux retards.", "evidence": "Source citée dans le corpus."},
+    {"id": "Irish Examiner", "label": "Irish\nExaminer", "group": "Médias / sources", "size": 13, "detail": "Presse irlandaise.", "position": "Articles sur les retards, l’absence de clarté, les impacts prix et sécurité énergétique.", "evidence": "Source citée dans le corpus."},
+    {"id": "Offshore Energy", "label": "Offshore\nEnergy", "group": "Médias / sources", "size": 13, "detail": "Média spécialisé énergie offshore.", "position": "Articles sur les étapes techniques : tirage, station, pose de câbles.", "evidence": "Source citée dans le corpus."},
+    {"id": "La Tribune", "label": "La Tribune", "group": "Médias / sources", "size": 12, "detail": "Média économique français.", "position": "Article sur l’ensouillage côté français et l’avancement du chantier.", "evidence": "Source citée dans le corpus."},
+    {"id": "TF1 Info", "label": "TF1 Info", "group": "Médias / sources", "size": 12, "detail": "Média national français.", "position": "Reportage grand public sur le chantier de pose en mer et l’intérêt énergétique pour la Bretagne.", "evidence": "Source citée dans le corpus."},
+    {"id": "Breizh-info.com", "label": "Breizh-info.com", "group": "Médias / sources", "size": 12, "detail": "Média régional / politique breton.", "position": "Article sur la station de conversion et la souveraineté énergétique européenne.", "evidence": "Source citée dans le corpus."},
+    {"id": "Voiries et Réseaux", "label": "Voiries et\nRéseaux", "group": "Médias / sources", "size": 12, "detail": "Média professionnel travaux / infrastructures.", "position": "Article sur la station de conversion de La Martyre et le rôle de NGE.", "evidence": "Source citée dans le corpus."},
+    {"id": "Silicon Republic", "label": "Silicon\nRepublic", "group": "Médias / sources", "size": 12, "detail": "Média tech / innovation irlandais.", "position": "Article sur l’étape franchie dans le projet et la station Ar Merzher.", "evidence": "Source citée dans le corpus."},
+    {"id": "Afloat.ie", "label": "Afloat.ie", "group": "Médias / sources", "size": 12, "detail": "Média maritime irlandais.", "position": "Notices maritimes sur les opérations de câbles, réparations, sécurité maritime.", "evidence": "Source citée dans le corpus."},
+    {"id": "Mer et Marine", "label": "Mer et\nMarine", "group": "Médias / sources", "size": 12, "detail": "Média maritime français.", "position": "Articles sur les navires câbliers et campagnes d’études en mer.", "evidence": "Source citée dans le corpus."},
+    {"id": "Révolution Énergétique", "label": "Révolution\nÉnergétique", "group": "Médias / sources", "size": 12, "detail": "Média énergie.", "position": "Article sur le début de pose côté français et le coût du projet.", "evidence": "Source citée dans le corpus."},
+    {"id": "ABP / Agence Bretagne Presse", "label": "ABP\nAgence Bretagne Presse", "group": "Médias / sources", "size": 12, "detail": "Média breton.", "position": "Article de 2019 sur la concertation et commentaires de lecteurs.", "evidence": "Source citée dans le corpus ; les commentaires de lecteurs ne permettent pas d’établir des opposants organisés."},
+    {"id": "Capital.fr", "label": "Capital.fr", "group": "Médias / sources", "size": 12, "detail": "Média économique.", "position": "Mention du contrat Assystem / CIDAC.", "evidence": "Source citée dans le corpus."},
+    {"id": "Cork Chamber / EirGrid communication", "label": "Cork Chamber\nEirGrid communication", "group": "Médias / sources", "size": 12, "detail": "Source institutionnelle / économique locale.", "position": "Relais des financements communautaires accordés en East Cork.", "evidence": "Source citée dans le corpus."},
+    {"id": "Retard du projet", "label": "Retard\ndu projet", "group": "Points de vigilance / griefs", "size": 20, "detail": "Point de vigilance structurant.", "position": "Mise en service passée vers fin 2028 / Q4 2028, avec risque de nouveau décalage lié aux conditions météorologiques et maritimes.", "evidence": "Les griefs présents dans le corpus portent principalement sur le retard du projet."},
+    {"id": "Dérapage des coûts", "label": "Dérapage\ndes coûts", "group": "Points de vigilance / griefs", "size": 20, "detail": "Point de vigilance structurant.", "position": "Passage possible d’environ 1,62 Md€ à plus de 2 Md€, voire 2,1 à 2,8 Md€ selon Alan McSweeney.", "evidence": "Le corpus signale un dérapage des coûts et des estimations divergentes."},
+    {"id": "Impact pour les consommateurs irlandais", "label": "Impact\nconsommateurs\nirlandais", "group": "Points de vigilance / griefs", "size": 18, "detail": "Point de vigilance structurant.", "position": "Les coûts peuvent être intégrés aux charges de réseau et soumis à l’autorisation de la CRU.", "evidence": "Le corpus évoque l’impact pour les consommateurs irlandais via les charges de réseau."},
+    {"id": "Sécurité d’approvisionnement irlandaise", "label": "Sécurité\nd’approvisionnement\nirlandaise", "group": "Points de vigilance / griefs", "size": 18, "detail": "Point de vigilance structurant.", "position": "Fragilité liée à la dépendance au gaz importé.", "evidence": "Le corpus mentionne la sécurité d’approvisionnement irlandaise comme enjeu."},
+    {"id": "Croissance de la demande électrique", "label": "Croissance\ndemande électrique", "group": "Points de vigilance / griefs", "size": 18, "detail": "Point de vigilance structurant.", "position": "Demande électrique en hausse, notamment liée aux data centers.", "evidence": "Le corpus relie la croissance de la demande à la progression des data centers."},
+    {"id": "Gouvernance territoriale bretonne", "label": "Gouvernance\nterritoriale\nbretonne", "group": "Points de vigilance / griefs", "size": 17, "detail": "Point de vigilance territorial.", "position": "Certains passages estiment que la Bretagne accueille et finance une infrastructure décidée dans des logiques françaises et européennes sans contrôle local réel.", "evidence": "Grief présent dans la synthèse des points de vigilance."},
+    {"id": "Arbitrages de marché", "label": "Arbitrages\nde marché", "group": "Points de vigilance / griefs", "size": 17, "detail": "Point de vigilance économique.", "position": "Les flux d’électricité peuvent suivre les zones les plus rentables plutôt qu’un bénéfice local.", "evidence": "Grief présent dans la synthèse des points de vigilance."},
+    {"id": "Contraintes environnementales et techniques", "label": "Contraintes\nenvironnementales\net techniques", "group": "Points de vigilance / griefs", "size": 18, "detail": "Point de vigilance technique et environnemental.", "position": "Conditions marines, terrain sous-marin difficile, ensouillage, protection des câbles, espèces protégées, espèces invasives et emprises de chantier.", "evidence": "Grief présent dans la synthèse des points de vigilance."}
+  ],
+  "links": [
+    {"source": "EirGrid", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "EirGrid est co-porteur du projet, responsable côté irlandais."},
+    {"source": "RTE / Réseau de Transport d’Électricité", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "RTE est co-porteur côté français."},
+    {"source": "CIDAC / Celtic Interconnector Designated Activity Company", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Structure projet mentionnée pour opérations et contrats."},
+    {"source": "Commission européenne / Union européenne", "target": "Celtic Interconnector", "kind": "financement", "evidence": "Projet reconnu d’intérêt commun ; subvention européenne mentionnée avec montants divergents."},
+    {"source": "CINEA", "target": "Celtic Interconnector", "kind": "relation institutionnelle", "evidence": "Agence européenne mentionnée comme soutenant le projet."},
+    {"source": "Commission for Regulation of Utilities / CRU", "target": "EirGrid", "kind": "relation institutionnelle", "evidence": "EirGrid devra obtenir l’autorisation de la CRU pour intégrer de nouvelles charges."},
+    {"source": "Malcolm Byrne", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Critique du manque de clarté du calendrier et inquiétude sur les objectifs offshore."},
+    {"source": "Jennifer Whitmore", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Interroge le retard de l’interconnexion."},
+    {"source": "Roderic O’Gorman", "target": "Darragh O’Brien", "kind": "relation institutionnelle", "evidence": "Il reçoit une mise à jour du ministre Darragh O’Brien."},
+    {"source": "Micheál Martin", "target": "EirGrid", "kind": "relation institutionnelle", "evidence": "Il indique avoir été informé par EirGrid de difficultés techniques."},
+    {"source": "Micheál Martin", "target": "Celtic Interconnector", "kind": "position ambiguë", "evidence": "Informé de difficultés techniques susceptibles de retarder le projet."},
+    {"source": "Darragh O’Brien", "target": "Celtic Interconnector", "kind": "relation institutionnelle", "evidence": "Il fournit une explication institutionnelle sur les retards et la complexité du projet."},
+    {"source": "Timmy Dooley", "target": "Malcolm Byrne", "kind": "relation institutionnelle", "evidence": "Malcolm Byrne l’interpelle sur l’absence de date opérationnelle."},
+    {"source": "Uplift", "target": "Don’t let Big Tech steal our light", "kind": "rattachement", "evidence": "Campagne liée à Uplift."},
+    {"source": "Uplift", "target": "Croissance de la demande électrique", "kind": "critique", "evidence": "Uplift critique la pression des data centers sur le système électrique."},
+    {"source": "Don’t let Big Tech steal our light", "target": "Croissance de la demande électrique", "kind": "critique", "evidence": "La campagne critique la consommation électrique des multinationales du numérique."},
+    {"source": "SECAD Partnership CLG", "target": "Celtic Interconnector", "kind": "relation institutionnelle", "evidence": "Accompagnement du Celtic Interconnector Community Benefit Fund."},
+    {"source": "Community groups / not-for-profit organisations in east Cork", "target": "Celtic Interconnector", "kind": "financement", "evidence": "29 groupes et organisations reçoivent 838 987 € dans le cadre du fonds associé au projet."},
+    {"source": "SECAD Partnership CLG", "target": "Community groups / not-for-profit organisations in east Cork", "kind": "relation institutionnelle", "evidence": "SECAD accompagne les candidatures au fonds communautaire."},
+    {"source": "Régis Boigegrain", "target": "RTE / Réseau de Transport d’Électricité", "kind": "rattachement", "evidence": "Régis Boigegrain est membre du directoire de RTE."},
+    {"source": "Rémi Courtial", "target": "RTE / Réseau de Transport d’Électricité", "kind": "rattachement", "evidence": "Rémi Courtial est directeur du projet Celtic Interconnector pour RTE."},
+    {"source": "Régis Boigegrain", "target": "Celtic Interconnector", "kind": "soutien", "evidence": "Il présente la phase française comme une étape décisive."},
+    {"source": "Rémi Courtial", "target": "Celtic Interconnector", "kind": "soutien", "evidence": "Il défend le projet comme acte de souveraineté européenne."},
+    {"source": "Nexans", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Ingénierie, fabrication et installation du système de câbles."},
+    {"source": "Siemens Energy", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Construction / équipements de station de conversion."},
+    {"source": "NGE", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Réalisation de la station de conversion d’Ar Merzher."},
+    {"source": "Alexandre Pinson", "target": "Siemens Energy", "kind": "rattachement", "evidence": "Chef de projet Siemens Energy."},
+    {"source": "Stéphane Perez", "target": "NGE", "kind": "rattachement", "evidence": "Directeur général de NGE."},
+    {"source": "Eiffage Énergie Systèmes", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Travaux de liaison terrestre côté français pour Nexans / RTE."},
+    {"source": "Hervé Burel", "target": "Eiffage Énergie Systèmes", "kind": "rattachement", "evidence": "Chef de projet Eiffage Énergie Systèmes – Réseaux & Solutions."},
+    {"source": "Vincent Morice", "target": "Eiffage Énergie Systèmes", "kind": "rattachement", "evidence": "Chef de projet EES / Eiffage Énergie Systèmes – Île-de-France."},
+    {"source": "DLE Ouest", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Réalisation d’un tronçon de liaison souterraine."},
+    {"source": "Eiffage Génie Civil / Eiffage Fondations", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Microtunnels et génie civil."},
+    {"source": "Van Oord", "target": "Nexans", "kind": "rattachement", "evidence": "Opérations de câbles pour Nexans / CIDAC."},
+    {"source": "Van Oord", "target": "CIDAC / Celtic Interconnector Designated Activity Company", "kind": "rattachement", "evidence": "Opérations de câbles pour Nexans / CIDAC."},
+    {"source": "Assystem", "target": "CIDAC / Celtic Interconnector Designated Activity Company", "kind": "rattachement", "evidence": "Contrat d’assistance à maîtrise d’ouvrage auprès de CIDAC."},
+    {"source": "Assystem", "target": "Celtic Interconnector", "kind": "portage du projet", "evidence": "Accompagnement de la conception et construction de la station de conversion française."},
+    {"source": "Alan McSweeney", "target": "Dérapage des coûts", "kind": "critique", "evidence": "Estime que le coût final pourrait atteindre 2,1 à 2,8 Md€."},
+    {"source": "Alan McSweeney", "target": "EirGrid", "kind": "source documentaire", "evidence": "Son estimation est fondée sur des documents publics EirGrid et CRU."},
+    {"source": "Barry Hayes", "target": "Retard du projet", "kind": "critique", "evidence": "Juge le retard défavorable aux consommateurs."},
+    {"source": "Barry Hayes", "target": "Sécurité d’approvisionnement irlandaise", "kind": "soutien", "evidence": "Estime que Celtic améliorerait la sécurité d’approvisionnement."},
+    {"source": "Paul Cuffe", "target": "Retard du projet", "kind": "critique", "evidence": "Qualifie le retard de « frustrating »."},
+    {"source": "Paul Cuffe", "target": "Sécurité d’approvisionnement irlandaise", "kind": "soutien", "evidence": "Souligne l’intérêt d’une alternative en cas de hausse des prix du gaz."},
+    {"source": "Paul Leahy", "target": "Croissance de la demande électrique", "kind": "critique", "evidence": "Alerte sur le resserrement entre capacité d’approvisionnement et demande avec la croissance des data centers."},
+    {"source": "Retard du projet", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Grief structurant du corpus."},
+    {"source": "Dérapage des coûts", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Grief structurant du corpus."},
+    {"source": "Impact pour les consommateurs irlandais", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Grief structurant du corpus."},
+    {"source": "Sécurité d’approvisionnement irlandaise", "target": "Celtic Interconnector", "kind": "position ambiguë", "evidence": "Enjeu présenté à la fois comme vulnérabilité actuelle et bénéfice attendu de l’interconnexion."},
+    {"source": "Croissance de la demande électrique", "target": "Celtic Interconnector", "kind": "position ambiguë", "evidence": "Enjeu de demande électrique dans le contexte irlandais."},
+    {"source": "Gouvernance territoriale bretonne", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Certains passages estiment que la Bretagne accueille et finance une infrastructure sans contrôle local réel."},
+    {"source": "Arbitrages de marché", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Les flux peuvent suivre les zones les plus rentables plutôt qu’un bénéfice local."},
+    {"source": "Contraintes environnementales et techniques", "target": "Celtic Interconnector", "kind": "critique", "evidence": "Conditions marines, terrain sous-marin difficile, ensouillage et protection des câbles."},
+    {"source": "news.google.com", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Agrégateur / reprise de presse du corpus."},
+    {"source": "The Irish Times", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Article sur les coûts possibles liés aux retards."},
+    {"source": "Irish Examiner", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Articles sur les retards et les impacts prix et sécurité énergétique."},
+    {"source": "Offshore Energy", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Articles sur les étapes techniques."},
+    {"source": "La Tribune", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Article sur l’ensouillage côté français et l’avancement du chantier."},
+    {"source": "TF1 Info", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Reportage sur le chantier de pose en mer et l’intérêt énergétique pour la Bretagne."},
+    {"source": "Breizh-info.com", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Article sur la station de conversion et la souveraineté énergétique européenne."},
+    {"source": "Voiries et Réseaux", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Article sur la station de conversion et le rôle de NGE."},
+    {"source": "Silicon Republic", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Article sur l’étape franchie dans le projet et la station Ar Merzher."},
+    {"source": "Afloat.ie", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Notices maritimes sur les opérations de câbles, réparations et sécurité maritime."},
+    {"source": "Mer et Marine", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Articles sur les navires câbliers et campagnes d’études en mer."},
+    {"source": "Révolution Énergétique", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Article sur le début de pose côté français et le coût du projet."},
+    {"source": "ABP / Agence Bretagne Presse", "target": "Celtic Interconnector", "kind": "source documentaire", "evidence": "Article de 2019 sur la concertation et commentaires de lecteurs."},
+    {"source": "Capital.fr", "target": "CIDAC / Celtic Interconnector Designated Activity Company", "kind": "source documentaire", "evidence": "Mention du contrat Assystem / CIDAC."},
+    {"source": "Cork Chamber / EirGrid communication", "target": "Community groups / not-for-profit organisations in east Cork", "kind": "source documentaire", "evidence": "Relais des financements communautaires accordés en East Cork."}
+  ]
+};
+
+// -----> LOGIQUE MOTEUR DYNAMIQUE <-----
+const graph = graphData;
+
+const colors={
+"Projet central":"#111827",
+"Opposants nommés":"#dc2626",
+"Élus opposés / critiques":"#7c3aed",
+"Élus favorables / prudents":"#2563eb",
+"Porteurs du projet":"#1d4ed8",
+"Institutions publiques":"#475569",
+"Collectifs citoyens":"#f59e0b",
+"Associations environnementales":"#16a34a",
+"Organisations agricoles":"#65a30d",
+"Syndicats":"#ea580c",
+"Acteurs économiques / industriels":"#0f766e",
+"Experts / chercheurs":"#0891b2",
+"Médias / sources":"#64748b",
+"Acteurs seulement cités":"#94a3b8",
+"Points de vigilance / griefs":"#be123c"
+};
+
+const central="Celtic Interconnector";
+const groupOrder=[
+"Projet central","Porteurs du projet","Acteurs économiques / industriels","Institutions publiques",
+"Élus favorables / prudents","Élus opposés / critiques","Experts / chercheurs","Collectifs citoyens",
+"Points de vigilance / griefs","Médias / sources","Opposants nommés","Associations environnementales",
+"Organisations agricoles","Syndicats","Acteurs seulement cités"
+];
+
+const svg=document.getElementById("svg");
+const chart=document.getElementById("chart");
+const details=document.getElementById("details");
+const tooltip=document.getElementById("tooltip");
+const checks=document.getElementById("checks");
+const countEl=document.getElementById("count");
+const search=document.getElementById("search");
+const ns="http://www.w3.org/2000/svg";
+
+while(svg.firstChild)svg.removeChild(svg.firstChild);
+if(window.__celticMapAnimationFrame){
+  cancelAnimationFrame(window.__celticMapAnimationFrame);
+  window.__celticMapAnimationFrame=null;
+}
+
+let width=chart.clientWidth;
+let height=chart.clientHeight;
+svg.setAttribute("viewBox",[0,0,width,height].join(" "));
+
+const g=document.createElementNS(ns,"g");
+const linkG=document.createElementNS(ns,"g");
+const nodeG=document.createElementNS(ns,"g");
+g.appendChild(linkG);
+g.appendChild(nodeG);
+svg.appendChild(g);
+
+const groups=[...new Set(graph.nodes.map(n=>n.group))].sort((a,b)=>{
+  const ia=groupOrder.indexOf(a),ib=groupOrder.indexOf(b);
+  return (ia<0?999:ia)-(ib<0?999:ib);
+});
+const activeGroups=new Set(groups);
+
+groups.forEach(gr=>{
+  const label=document.createElement("label");
+  const cb=document.createElement("input");
+  cb.type="checkbox";
+  cb.checked=true;
+  cb.value=gr;
+  const dot=document.createElement("span");
+  dot.className="legend-dot";
+  dot.style.background=colors[gr]||"#64748b";
+  const txt=document.createElement("span");
+  txt.textContent=gr;
+  label.appendChild(cb);
+  label.appendChild(dot);
+  label.appendChild(txt);
+  checks.appendChild(label);
+});
+
+const nodes=graph.nodes.map(d=>Object.assign({}, d,{x:0,y:0,fixed:false}));
+const nodeById=new Map(nodes.map(d=>[d.id,d]));
+const links=graph.links.map(d=>Object.assign({},d,{source:nodeById.get(d.source),target:nodeById.get(d.target)})).filter(d=>d.source&&d.target);
+
+const invalidLinks=graph.links.filter(l=>!nodeById.has(l.source)||!nodeById.has(l.target));
+if(invalidLinks.length)console.error("Liens invalides",invalidLinks);
+
+const linkEls=links.map(l=>{
+  const line=document.createElementNS(ns,"line");
+  line.classList.add("link");
+  line.dataset.source=l.source.id;
+  line.dataset.target=l.target.id;
+  linkG.appendChild(line);
+  return line;
+});
+
+const nodeEls=nodes.map(n=>{
+  const el=document.createElementNS(ns,"g");
+  el.classList.add("node");
+  el.dataset.id=n.id;
+  el.dataset.group=n.group;
+
+  const c=document.createElementNS(ns,"circle");
+  c.setAttribute("r",n.size);
+  c.setAttribute("fill",colors[n.group]||"#64748b");
+
+  const t=document.createElementNS(ns,"text");
+  t.setAttribute("dy",n.size+13);
+  String(n.label||n.id).split("\n").forEach((part,i)=>{
+    const tsp=document.createElementNS(ns,"tspan");
+    tsp.textContent=part;
+    tsp.setAttribute("x",0);
+    tsp.setAttribute("dy",i===0?0:12);
+    t.appendChild(tsp);
+  });
+
+  el.appendChild(c);
+  el.appendChild(t);
+  nodeG.appendChild(el);
+
+  el.addEventListener("click",()=>selectNode(n));
+  el.addEventListener("mouseenter",ev=>showTip(n,ev));
+  el.addEventListener("mousemove",ev=>showTip(n,ev));
+  el.addEventListener("mouseleave",()=>tooltip.style.opacity=0);
+  drag(el,n);
+
+  return el;
+});
+
+function initialPosition(){
+  const ring={
+    "Projet central":0,
+    "Porteurs du projet":155,
+    "Acteurs économiques / industriels":245,
+    "Institutions publiques":310,
+    "Élus favorables / prudents":255,
+    "Élus opposés / critiques":275,
+    "Experts / chercheurs":330,
+    "Collectifs citoyens":300,
+    "Points de vigilance / griefs":360,
+    "Médias / sources":430,
+    "Opposants nommés":380,
+    "Associations environnementales":350,
+    "Organisations agricoles":350,
+    "Syndicats":350,
+    "Acteurs seulement cités":430
+  };
+  const baseAngle={
+    "Projet central":0,
+    "Porteurs du projet":-0.25,
+    "Acteurs économiques / industriels":0.55,
+    "Institutions publiques":-1.65,
+    "Élus favorables / prudents":-2.55,
+    "Élus opposés / critiques":2.95,
+    "Experts / chercheurs":2.1,
+    "Collectifs citoyens":2.65,
+    "Points de vigilance / griefs":1.35,
+    "Médias / sources":-3.05,
+    "Opposants nommés":3.1,
+    "Associations environnementales":2.7,
+    "Organisations agricoles":2.9,
+    "Syndicats":3.0,
+    "Acteurs seulement cités":-2.9
+  };
+  const byGroup={};
+  nodes.forEach(n=>(byGroup[n.group]||=[]).push(n));
+  nodes.forEach(n=>{
+    n.fixed=false;
+    if(n.id===central){
+      n.x=width/2;
+      n.y=height/2;
+      return;
+    }
+    const arr=byGroup[n.group];
+    const idx=arr.indexOf(n);
+    const total=arr.length;
+    const spread=Math.PI*2/Math.max(total,1);
+    const angle=(baseAngle[n.group]??0)+idx*spread;
+    const r=Math.min(ring[n.group]||320,Math.max(150,Math.min(width,height)*0.46));
+    n.x=width/2+Math.cos(angle)*r;
+    n.y=height/2+Math.sin(angle)*r;
+  });
+}
+
+function tick(){
+  for(let k=0;k<2;k++){
+    links.forEach(l=>{
+      const dx=l.target.x-l.source.x;
+      const dy=l.target.y-l.source.y;
+      const dist=Math.hypot(dx,dy)||1;
+      const desired=(l.source.id===central||l.target.id===central)?170:120;
+      const f=(dist-desired)*0.012;
+      const fx=dx/dist*f;
+      const fy=dy/dist*f;
+      if(!l.source.fixed){l.source.x+=fx;l.source.y+=fy}
+      if(!l.target.fixed){l.target.x-=fx;l.target.y-=fy}
+    });
+
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const a=nodes[i],b=nodes[j];
+        const dx=b.x-a.x,dy=b.y-a.y;
+        const dist=Math.hypot(dx,dy)||1;
+        const min=a.size+b.size+38;
+        if(dist<min){
+          const f=(min-dist)/dist*0.028;
+          if(!a.fixed){a.x-=dx*f;a.y-=dy*f}
+          if(!b.fixed){b.x+=dx*f;b.y+=dy*f}
+        }
+      }
+    }
+
+    nodes.forEach(n=>{
+      if(n.id===central&&!n.fixed){
+        n.x+=(width/2-n.x)*0.035;
+        n.y+=(height/2-n.y)*0.035;
+      }else if(!n.fixed){
+        n.x+=(width/2-n.x)*0.0015;
+        n.y+=(height/2-n.y)*0.0015;
+      }
+      n.x=Math.max(40,Math.min(width-40,n.x));
+      n.y=Math.max(40,Math.min(height-40,n.y));
+    });
+  }
+
+  linkEls.forEach((el,i)=>{
+    const l=links[i];
+    el.setAttribute("x1",l.source.x);
+    el.setAttribute("y1",l.source.y);
+    el.setAttribute("x2",l.target.x);
+    el.setAttribute("y2",l.target.y);
+  });
+
+  nodeEls.forEach((el,i)=>{
+    el.setAttribute("transform",`translate(${nodes[i].x},${nodes[i].y})`);
+  });
+}
+
+function animate(){
+  tick();
+  window.__celticMapAnimationFrame=requestAnimationFrame(animate);
+}
+
+function selectNode(n){
+  nodeEls.forEach(el=>el.classList.remove("selected","dim"));
+  linkEls.forEach(el=>el.classList.remove("dim","highlight"));
+
+  const neigh=new Set([n.id]);
+  links.forEach(l=>{
+    if(l.source.id===n.id)neigh.add(l.target.id);
+    if(l.target.id===n.id)neigh.add(l.source.id);
+  });
+
+  nodeEls.forEach(el=>{
+    if(!neigh.has(el.dataset.id))el.classList.add("dim");
+    if(el.dataset.id===n.id)el.classList.add("selected");
+  });
+
+  linkEls.forEach((el,i)=>{
+    const l=links[i];
+    if(l.source.id===n.id||l.target.id===n.id)el.classList.add("highlight");
+    else el.classList.add("dim");
+  });
+
+  const conns=links
+    .filter(l=>l.source.id===n.id||l.target.id===n.id)
+    .filter(l=>{
+      const other=l.source.id===n.id?l.target:l.source;
+      const otherEl=nodeEls[nodes.indexOf(other)];
+      return otherEl&&!otherEl.classList.contains("hidden");
+    })
+    .map(l=>({other:l.source.id===n.id?l.target.id:l.source.id,kind:l.kind,evidence:l.evidence}));
+
+  details.innerHTML=`
+    <h2>${escapeHtml(n.id)}</h2>
+    <span class="pill" style="background:${colors[n.group]||"#64748b"}">${escapeHtml(n.group)}</span>
+    <h3>Description</h3><p>${escapeHtml(n.detail||"")}</p>
+    <h3>Position</h3><p>${escapeHtml(n.position||"")}</p>
+    <h3>Preuve</h3><p>${escapeHtml(n.evidence||"")}</p>
+    <h3>Connexions visibles</h3>
+    <p>${conns.length?conns.map(c=>escapeHtml(c.other)+" · "+escapeHtml(c.kind)).join(", "):"aucune"}</p>
+  `;
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+
+function showTip(n,ev){
+  tooltip.innerHTML=`<strong>${escapeHtml(n.id)}</strong><br>${escapeHtml(n.group)}`;
+  tooltip.style.opacity=1;
+  const rect=chart.getBoundingClientRect();
+  tooltip.style.left=(ev.clientX-rect.left)+"px";
+  tooltip.style.top=(ev.clientY-rect.top)+"px";
+}
+
+function applyFilters(){
+  const q=search.value.trim().toLowerCase();
+  let visible=0;
+
+  nodeEls.forEach((el,i)=>{
+    const n=nodes[i];
+    const hay=(n.id+" "+n.group+" "+(n.detail||"")+" "+(n.position||"")+" "+(n.evidence||"")).toLowerCase();
+    const ok=activeGroups.has(n.group)&&(!q||hay.includes(q));
+    el.classList.toggle("hidden",!ok);
+    if(ok)visible++;
+  });
+
+  linkEls.forEach((el,i)=>{
+    const l=links[i];
+    const sEl=nodeEls[nodes.indexOf(l.source)];
+    const tEl=nodeEls[nodes.indexOf(l.target)];
+    el.classList.toggle("hidden",sEl.classList.contains("hidden")||tEl.classList.contains("hidden"));
+  });
+
+  countEl.textContent=visible+" nœud"+(visible>1?"s":"")+" affiché"+(visible>1?"s":"")+" sur "+nodes.length;
+}
+
+checks.addEventListener("change",e=>{
+  if(e.target.type==="checkbox"){
+    e.target.checked?activeGroups.add(e.target.value):activeGroups.delete(e.target.value);
+    applyFilters();
+  }
+});
+
+search.addEventListener("input",applyFilters);
+
+document.getElementById("reset").onclick=()=>{
+  search.value="";
+  activeGroups.clear();
+  groups.forEach(g=>activeGroups.add(g));
+  document.querySelectorAll("#checks input").forEach(cb=>cb.checked=true);
+  nodeEls.forEach(el=>el.classList.remove("selected","dim","hidden"));
+  linkEls.forEach(el=>el.classList.remove("dim","hidden","highlight"));
+  details.innerHTML=`<h2>Celtic Interconnector</h2><span class="pill" style="background:#111827">Projet central</span><p>Projet d’interconnexion électrique France-Irlande, reliant les réseaux électriques français et irlandais.</p><p class="mini">Lecture rapide : plus le nœud est gros, plus l’acteur est structurant dans le corpus.</p>`;
+  currentZoom=1;
+  panX=0;
+  panY=0;
+  updateTransform();
+  initialPosition();
+  applyFilters();
+};
+
+document.getElementById("center").onclick=()=>{
+  currentZoom=1;
+  panX=0;
+  panY=0;
+  updateTransform();
+};
+
+function drag(el,n){
+  let down=false,ox=0,oy=0;
+  el.addEventListener("pointerdown",ev=>{
+    ev.stopPropagation();
+    down=true;
+    n.fixed=true;
+    el.setPointerCapture(ev.pointerId);
+    const pt=toSvg(ev);
+    ox=n.x-pt.x;
+    oy=n.y-pt.y;
+  });
+  el.addEventListener("pointermove",ev=>{
+    if(!down)return;
+    const pt=toSvg(ev);
+    n.x=pt.x+ox;
+    n.y=pt.y+oy;
+  });
+  el.addEventListener("pointerup",ev=>{
+    down=false;
+    try{el.releasePointerCapture(ev.pointerId)}catch(e){}
+  });
+}
+
+let currentZoom=1,panX=0,panY=0,panning=false,sx=0,sy=0;
+
+function updateTransform(){
+  g.setAttribute("transform",`translate(${panX},${panY}) scale(${currentZoom})`);
+}
+
+function toSvg(ev){
+  const rect=svg.getBoundingClientRect();
+  return{x:(ev.clientX-rect.left-panX)/currentZoom,y:(ev.clientY-rect.top-panY)/currentZoom};
+}
+
+svg.addEventListener("wheel",ev=>{
+  ev.preventDefault();
+  const rect=svg.getBoundingClientRect();
+  const mx=ev.clientX-rect.left;
+  const my=ev.clientY-rect.top;
+  const old=currentZoom;
+  const factor=ev.deltaY<0?1.08:0.92;
+  currentZoom=Math.max(.35,Math.min(2.8,currentZoom*factor));
+  panX=mx-(mx-panX)*(currentZoom/old);
+  panY=my-(my-panY)*(currentZoom/old);
+  updateTransform();
+},{passive:false});
+
+svg.addEventListener("pointerdown",ev=>{
+  if(ev.target===svg){
+    panning=true;
+    sx=ev.clientX-panX;
+    sy=ev.clientY-panY;
+    svg.classList.add("grabbing");
+  }
+});
+
+svg.addEventListener("pointermove",ev=>{
+  if(panning){
+    panX=ev.clientX-sx;
+    panY=ev.clientY-sy;
+    updateTransform();
+  }
+});
+
+svg.addEventListener("pointerup",()=>{
+  panning=false;
+  svg.classList.remove("grabbing");
+});
+
+svg.addEventListener("pointerleave",()=>{
+  panning=false;
+  svg.classList.remove("grabbing");
+});
+
+window.addEventListener("resize",()=>{
+  width=chart.clientWidth;
+  height=chart.clientHeight;
+  svg.setAttribute("viewBox",[0,0,width,height].join(" "));
+});
+
+initialPosition();
+applyFilters();
+updateTransform();
+animate();
+
+})();
+</script>
+</body>
+</html>
