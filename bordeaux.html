@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nuage interactif — Projets IA à Bordeaux</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --paper: #ffffff;
+      --ground: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--ground);
+      color: var(--ink);
+    }
+    header {
+      padding: 18px 22px 13px;
+      background: linear-gradient(90deg, #0f172a, #334155);
+      color: #fff;
+    }
+    h1 { margin: 0; font-size: 22px; }
+    header p { margin: 6px 0 0; color: #cbd5e1; font-size: 13px; }
+    #wrap {
+      display: grid;
+      grid-template-columns: 315px minmax(0, 1fr) 355px;
+      height: calc(100vh - 77px);
+      min-height: 720px;
+    }
+    aside, #details {
+      background: var(--paper);
+      padding: 16px;
+      overflow: auto;
+    }
+    aside { border-right: 1px solid var(--line); }
+    #details { border-left: 1px solid var(--line); }
+    #chart { position: relative; overflow: hidden; min-width: 0; }
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: var(--ground);
+      cursor: grab;
+      touch-action: none;
+    }
+    .node circle {
+      stroke: #fff;
+      stroke-width: 2px;
+      filter: drop-shadow(0 2px 5px rgba(15, 23, 42, .18));
+    }
+    .node text {
+      font-size: 11px;
+      font-weight: 700;
+      paint-order: stroke;
+      stroke: #fff;
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      fill: var(--ink);
+      pointer-events: none;
+      text-anchor: middle;
+    }
+    .link {
+      stroke: #94a3b8;
+      stroke-opacity: .5;
+      stroke-width: 1.35;
+    }
+    .link-label {
+      font-size: 10px;
+      fill: #475569;
+      text-anchor: middle;
+      pointer-events: none;
+      paint-order: stroke;
+      stroke: #f8fafc;
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
+    .dim { opacity: .12; }
+    .hidden { display: none; }
+    .selected circle { stroke: var(--ink); stroke-width: 3.2px; }
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 10px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    #search {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font: inherit;
+    }
+    .btnrow { display: flex; gap: 8px; margin: 12px 0; }
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--ink);
+    }
+    button:hover { background: #f8fafc; }
+    .filter-row {
+      display: grid;
+      grid-template-columns: 16px 12px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      margin: 9px 0;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+    .filter-row input {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+    }
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    #count { margin-top: 13px; color: var(--muted); font-size: 12px; }
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      color: white;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    #details h2 { margin: 0 0 9px; font-size: 20px; }
+    #details p { line-height: 1.45; font-size: 14px; }
+    .connection-list {
+      margin: 7px 0 0;
+      padding-left: 18px;
+      font-size: 13px;
+      line-height: 1.38;
+    }
+    #tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: #0f172a;
+      color: #fff;
+      padding: 7px 9px;
+      border-radius: 8px;
+      font-size: 12px;
+      opacity: 0;
+      transform: translate(-50%, -120%);
+      z-index: 5;
+      max-width: 260px;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.25;
+    }
+    @media (max-width: 1050px) {
+      #wrap { grid-template-columns: 270px minmax(0, 1fr); }
+      #details { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); min-height: 210px; }
+    }
+    @media (max-width: 700px) {
+      #wrap { display: block; height: auto; min-height: 0; }
+      aside, #details { border: 0; border-bottom: 1px solid var(--line); }
+      #chart { height: 640px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cartographie interactive des acteurs — Projets IA et data centers de Bordeaux</h1>
+    <p>Campus BXIA et projet Altarea / Vantage : porteurs, élus, critiques et exigences de souveraineté numérique.</p>
+  </header>
+
+  <div id="wrap">
+    <aside>
+      <div class="hint">Recherche, filtres et clic sur un nœud. Les nœuds sont déplaçables ; molette = zoom.</div>
+      <input id="search" aria-label="Rechercher un acteur" placeholder="Rechercher un acteur...">
+      <div class="btnrow">
+        <button id="reset" type="button">Réinitialiser</button>
+        <button id="center" type="button">Recentrer</button>
+      </div>
+      <strong>Filtres</strong>
+      <div id="checks"></div>
+      <div id="count"></div>
+    </aside>
+
+    <main id="chart">
+      <div id="tooltip"></div>
+      <svg id="svg" aria-label="Nuage interactif des acteurs" role="img"></svg>
+    </main>
+
+    <section id="details">
+      <h2>Campus IA BXIA — Bordeaux</h2>
+      <span class="pill" style="background:#111827">Projet central</span>
+      <p>Le nuage restitue strictement les acteurs et relations renseignés. Le projet Altarea / Vantage est visible, mais n’est relié à aucun autre nœud car aucune relation n’a été fournie dans les données.</p>
+    </section>
+  </div>
+
+  <script>
+    const graphData = {
+  "nodes": [
+    {
+      "id": "Projet BXIA (Bordeaux)",
+      "label": "Campus IA\nBXIA",
+      "group": "Projet central",
+      "size": 25,
+      "detail": "Supercalculateur de 380 MW (3 milliards d'euros) porté par NFU et Osae sur le Parc des expositions."
+    },
+    {
+      "id": "Projet Altarea/Vantage",
+      "label": "Campus\nAltarea",
+      "group": "Projet central",
+      "size": 18,
+      "detail": "Campus hyperscale IA avec 400 MW sécurisés près de Bordeaux."
+    },
+    {
+      "id": "Benjamin Delaux",
+      "label": "B. Delaux\n(NFU)",
+      "group": "Porteurs / institutions du projet",
+      "size": 15,
+      "detail": "Fondateur de BXIA, promeut la souveraineté européenne."
+    },
+    {
+      "id": "Vincent Feltesse",
+      "label": "V. Feltesse",
+      "group": "Porteurs / institutions du projet",
+      "size": 15,
+      "detail": "Ex-élu, facilitateur du projet BXIA."
+    },
+    {
+      "id": "Pierre Hurmic",
+      "label": "P. Hurmic\n(Maire EELV)",
+      "group": "Élus / acteurs institutionnels",
+      "size": 20,
+      "detail": "Maire écologiste validant BXIA au nom de la souveraineté et de l'emploi."
+    },
+    {
+      "id": "Christine Bost",
+      "label": "C. Bost\n(Métropole)",
+      "group": "Élus / acteurs institutionnels",
+      "size": 20,
+      "detail": "Présidente de Bordeaux Métropole, accélère la cession foncière."
+    },
+    {
+      "id": "Thomas Cazenave",
+      "label": "T. Cazenave\n(Renaissance)",
+      "group": "Opposants / critiques nommément cités",
+      "size": 15,
+      "detail": "Critique l'absence d'appel d'offres (AMI)."
+    },
+    {
+      "id": "Fabien Robert",
+      "label": "F. Robert\n(MoDem)",
+      "group": "Opposants / critiques nommément cités",
+      "size": 15,
+      "detail": "Dénonce la contradiction écologique."
+    },
+    {
+      "id": "La France insoumise (Bordeaux)",
+      "label": "LFI\nBordeaux",
+      "group": "Noyau d’opposition local",
+      "size": 18,
+      "detail": "Dénonce une aberration écologique et réclame un moratoire."
+    },
+    {
+      "id": "Pôle ENTER",
+      "label": "Pôle ENTER",
+      "group": "Organisations agricoles / foncières",
+      "size": 15,
+      "detail": "Réclame des preuves d'indépendance vis-à-vis du Cloud Act."
+    }
+  ],
+  "links": [
+    {
+      "source": "Benjamin Delaux",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "Porte le projet"
+    },
+    {
+      "source": "Vincent Feltesse",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "Co-dirige"
+    },
+    {
+      "source": "Pierre Hurmic",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "Soutient (opportunité / souveraineté)"
+    },
+    {
+      "source": "Christine Bost",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "Soutient (foncier)"
+    },
+    {
+      "source": "Thomas Cazenave",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "Critique la méthode"
+    },
+    {
+      "source": "Fabien Robert",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "Critique l'impact écologique"
+    },
+    {
+      "source": "La France insoumise (Bordeaux)",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "S'oppose (moratoire)"
+    },
+    {
+      "source": "Pôle ENTER",
+      "target": "Projet BXIA (Bordeaux)",
+      "kind": "Exige une IA souveraine"
+    }
+  ]
+};
+
+    const colors = {"Projet central": "#111827", "Porteurs / institutions du projet": "#0f766e", "Élus / acteurs institutionnels": "#2563eb", "Opposants / critiques nommément cités": "#dc2626", "Noyau d’opposition local": "#15803d", "Organisations agricoles / foncières": "#ca8a04"};
+    const groups = ["Projet central", "Porteurs / institutions du projet", "Élus / acteurs institutionnels", "Opposants / critiques nommément cités", "Noyau d’opposition local", "Organisations agricoles / foncières"];
+    const primaryCentral = "Projet BXIA (Bordeaux)";
+    const secondaryCentral = "Projet Altarea/Vantage";
+
+    const svg = document.getElementById("svg");
+    const chart = document.getElementById("chart");
+    const details = document.getElementById("details");
+    const tooltip = document.getElementById("tooltip");
+    const checks = document.getElementById("checks");
+    const count = document.getElementById("count");
+    const ns = "http://www.w3.org/2000/svg";
+
+    let W = chart.clientWidth || 950;
+    let H = chart.clientHeight || 760;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+    const viewport = document.createElementNS(ns, "g");
+    const linkLayer = document.createElementNS(ns, "g");
+    const labelLayer = document.createElementNS(ns, "g");
+    const nodeLayer = document.createElementNS(ns, "g");
+    viewport.append(linkLayer, labelLayer, nodeLayer);
+    svg.appendChild(viewport);
+
+    const active = new Set(groups);
+    groups.forEach(group => {
+      const row = document.createElement("label");
+      row.className = "filter-row";
+      row.innerHTML = `<input type="checkbox" checked value="${esc(group)}"><span class="dot" style="background:${colors[group]}"></span><span>${esc(group)}</span>`;
+      checks.appendChild(row);
+    });
+
+    const nodes = graphData.nodes.map(node => ({ ...node }));
+    const byId = new Map(nodes.map(node => [node.id, node]));
+    const links = graphData.links
+      .map(link => ({ ...link, source: byId.get(link.source), target: byId.get(link.target) }))
+      .filter(link => link.source && link.target);
+
+    const nodeElements = nodes.map(node => {
+      const group = document.createElementNS(ns, "g");
+      group.classList.add("node");
+      group.dataset.id = node.id;
+      group.dataset.group = node.group;
+
+      const circle = document.createElementNS(ns, "circle");
+      circle.setAttribute("r", node.size);
+      circle.setAttribute("fill", colors[node.group] || "#94a3b8");
+
+      const label = document.createElementNS(ns, "text");
+      label.setAttribute("dy", node.size + 14);
+      node.label.split("\n").forEach((line, index) => {
+        const span = document.createElementNS(ns, "tspan");
+        span.textContent = line;
+        span.setAttribute("x", "0");
+        span.setAttribute("dy", index ? "12" : "0");
+        label.appendChild(span);
+      });
+
+      group.append(circle, label);
+      group.addEventListener("click", event => {
+        event.stopPropagation();
+        selectNode(node);
+      });
+      group.addEventListener("mouseenter", event => showTooltip(node, event));
+      group.addEventListener("mousemove", event => showTooltip(node, event));
+      group.addEventListener("mouseleave", hideTooltip);
+      enableDrag(group, node);
+
+      nodeLayer.appendChild(group);
+      return group;
+    });
+
+    const linkElements = links.map(link => {
+      const line = document.createElementNS(ns, "line");
+      line.classList.add("link");
+      linkLayer.appendChild(line);
+      return line;
+    });
+
+    const linkLabelElements = links.map(link => {
+      const label = document.createElementNS(ns, "text");
+      label.classList.add("link-label");
+      label.textContent = link.kind;
+      labelLayer.appendChild(label);
+      return label;
+    });
+
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[char]));
+    }
+
+    function assignAnchors(resetPositions = true) {
+      const centerX = W / 2;
+      const centerY = H / 2;
+      const buckets = Object.fromEntries(groups.map(group => [group, []]));
+      nodes.forEach(node => buckets[node.group].push(node));
+
+      const settings = {
+        "Porteurs / institutions du projet": { angle: -1.15, radius: 255 },
+        "Élus / acteurs institutionnels": { angle: -2.35, radius: 270 },
+        "Opposants / critiques nommément cités": { angle: 2.75, radius: 265 },
+        "Noyau d’opposition local": { angle: 2.05, radius: 270 },
+        "Organisations agricoles / foncières": { angle: 0.95, radius: 275 }
+      };
+
+      nodes.forEach(node => {
+        if (node.id === primaryCentral) {
+          node.ax = centerX;
+          node.ay = centerY;
+          if (resetPositions || typeof node.x !== "number") {
+            node.x = centerX;
+            node.y = centerY;
+          }
+          node.fixed = true;
+          return;
+        }
+
+        if (node.id === secondaryCentral) {
+          node.ax = centerX + Math.min(230, Math.max(160, W * 0.23));
+          node.ay = centerY - 24;
+          if (resetPositions || typeof node.x !== "number") {
+            node.x = node.ax;
+            node.y = node.ay;
+          }
+          return;
+        }
+
+        const bucket = buckets[node.group];
+        const position = bucket.indexOf(node);
+        const cfg = settings[node.group] || { angle: 0, radius: 260 };
+        const spread = bucket.length > 1 ? (position - (bucket.length - 1) / 2) * 0.44 : 0;
+        const angle = cfg.angle + spread;
+
+        node.ax = centerX + Math.cos(angle) * cfg.radius;
+        node.ay = centerY + Math.sin(angle) * cfg.radius;
+        if (resetPositions || typeof node.x !== "number") {
+          node.x = node.ax;
+          node.y = node.ay;
+        }
+      });
+    }
+
+    assignAnchors(true);
+
+    function clampNode(node) {
+      const padding = Math.max(38, node.size + 14);
+      node.x = Math.max(padding, Math.min(W - padding, node.x));
+      node.y = Math.max(padding, Math.min(H - padding, node.y));
+    }
+
+    function render() {
+      linkElements.forEach((element, index) => {
+        const link = links[index];
+        element.setAttribute("x1", link.source.x);
+        element.setAttribute("y1", link.source.y);
+        element.setAttribute("x2", link.target.x);
+        element.setAttribute("y2", link.target.y);
+      });
+
+      linkLabelElements.forEach((element, index) => {
+        const link = links[index];
+        const x = (link.source.x + link.target.x) / 2;
+        const y = (link.source.y + link.target.y) / 2;
+        element.setAttribute("x", x);
+        element.setAttribute("y", y - 5);
+      });
+
+      nodeElements.forEach((element, index) => {
+        const node = nodes[index];
+        element.setAttribute("transform", `translate(${node.x},${node.y})`);
+      });
+    }
+
+    function tick() {
+      for (let repeat = 0; repeat < 2; repeat += 1) {
+        links.forEach(link => {
+          const dx = link.target.x - link.source.x;
+          const dy = link.target.y - link.source.y;
+          const distance = Math.hypot(dx, dy) || 1;
+          const targetDistance = (link.source.id === primaryCentral || link.target.id === primaryCentral) ? 205 : 150;
+          const force = (distance - targetDistance) * 0.012;
+          const fx = (dx / distance) * force;
+          const fy = (dy / distance) * force;
+
+          if (!link.source.fixed) {
+            link.source.x += fx;
+            link.source.y += fy;
+          }
+          if (!link.target.fixed) {
+            link.target.x -= fx;
+            link.target.y -= fy;
+          }
+        });
+
+        for (let i = 0; i < nodes.length; i += 1) {
+          for (let j = i + 1; j < nodes.length; j += 1) {
+            const a = nodes[i];
+            const b = nodes[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const minimum = a.size + b.size + 58;
+            if (distance < minimum) {
+              const force = ((minimum - distance) / distance) * 0.04;
+              if (!a.fixed) {
+                a.x -= dx * force;
+                a.y -= dy * force;
+              }
+              if (!b.fixed) {
+                b.x += dx * force;
+                b.y += dy * force;
+              }
+            }
+          }
+        }
+
+        nodes.forEach(node => {
+          if (!node.fixed) {
+            node.x += (node.ax - node.x) * 0.006;
+            node.y += (node.ay - node.y) * 0.006;
+          }
+          clampNode(node);
+        });
+      }
+
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    function showTooltip(node, event) {
+      tooltip.textContent = `${node.id} — ${node.group}`;
+      tooltip.style.opacity = "1";
+      const rect = chart.getBoundingClientRect();
+      tooltip.style.left = `${event.clientX - rect.left}px`;
+      tooltip.style.top = `${event.clientY - rect.top}px`;
+    }
+
+    function hideTooltip() {
+      tooltip.style.opacity = "0";
+    }
+
+    function selectNode(node) {
+      const relatedLinks = links.filter(link => link.source.id === node.id || link.target.id === node.id);
+      const neighbors = new Set([node.id]);
+      relatedLinks.forEach(link => {
+        neighbors.add(link.source.id);
+        neighbors.add(link.target.id);
+      });
+
+      nodeElements.forEach(element => {
+        element.classList.toggle("dim", !neighbors.has(element.dataset.id));
+        element.classList.toggle("selected", element.dataset.id === node.id);
+      });
+
+      linkElements.forEach((element, index) => {
+        const link = links[index];
+        element.classList.toggle("dim", link.source.id !== node.id && link.target.id !== node.id);
+      });
+      linkLabelElements.forEach((element, index) => {
+        const link = links[index];
+        element.classList.toggle("dim", link.source.id !== node.id && link.target.id !== node.id);
+      });
+
+      const list = relatedLinks.length
+        ? `<ul class="connection-list">${relatedLinks.map(link => {
+            const other = link.source.id === node.id ? link.target.id : link.source.id;
+            return `<li><strong>${esc(link.kind)}</strong> — ${esc(other)}</li>`;
+          }).join("")}</ul>`
+        : "<p><strong>Connexions :</strong> aucune relation renseignée.</p>";
+
+      details.innerHTML = `
+        <h2>${esc(node.id)}</h2>
+        <span class="pill" style="background:${colors[node.group] || "#64748b"}">${esc(node.group)}</span>
+        <p>${esc(node.detail)}</p>
+        <p><strong>Relations renseignées :</strong></p>
+        ${list}
+      `;
+    }
+
+    function resetSelection() {
+      nodeElements.forEach(element => element.classList.remove("selected", "dim"));
+      linkElements.forEach(element => element.classList.remove("dim"));
+      linkLabelElements.forEach(element => element.classList.remove("dim"));
+      details.innerHTML = `
+        <h2>Campus IA BXIA — Bordeaux</h2>
+        <span class="pill" style="background:#111827">Projet central</span>
+        <p>Le nuage restitue strictement les acteurs et relations renseignés. Le projet Altarea / Vantage est visible, mais n’est relié à aucun autre nœud car aucune relation n’a été fournie dans les données.</p>
+      `;
+    }
+
+    function applyFilters() {
+      const query = document.getElementById("search").value.toLowerCase().trim();
+      let visibleNodes = 0;
+
+      nodeElements.forEach((element, index) => {
+        const node = nodes[index];
+        const matches = active.has(node.group) && (!query || `${node.id} ${node.label} ${node.group} ${node.detail}`.toLowerCase().includes(query));
+        element.classList.toggle("hidden", !matches);
+        if (matches) visibleNodes += 1;
+      });
+
+      linkElements.forEach((element, index) => {
+        const link = links[index];
+        const sourceElement = nodeElements[nodes.indexOf(link.source)];
+        const targetElement = nodeElements[nodes.indexOf(link.target)];
+        const hidden = sourceElement.classList.contains("hidden") || targetElement.classList.contains("hidden");
+        element.classList.toggle("hidden", hidden);
+        linkLabelElements[index].classList.toggle("hidden", hidden);
+      });
+
+      count.textContent = `${visibleNodes} nœuds affichés sur ${nodes.length}`;
+    }
+
+    checks.addEventListener("change", event => {
+      if (event.target.type !== "checkbox") return;
+      if (event.target.checked) active.add(event.target.value);
+      else active.delete(event.target.value);
+      applyFilters();
+    });
+
+    document.getElementById("search").addEventListener("input", applyFilters);
+
+    document.getElementById("reset").addEventListener("click", () => {
+      document.getElementById("search").value = "";
+      document.querySelectorAll("#checks input").forEach(checkbox => {
+        checkbox.checked = true;
+        active.add(checkbox.value);
+      });
+      nodes.forEach(node => {
+        node.fixed = node.id === primaryCentral;
+      });
+      assignAnchors(true);
+      resetSelection();
+      applyFilters();
+    });
+
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let panning = false;
+    let startX = 0;
+    let startY = 0;
+
+    function updateViewport() {
+      viewport.setAttribute("transform", `translate(${panX},${panY}) scale(${zoom})`);
+    }
+
+    function toSvgPoint(event) {
+      const rect = svg.getBoundingClientRect();
+      return {
+        x: (event.clientX - rect.left - panX) / zoom,
+        y: (event.clientY - rect.top - panY) / zoom
+      };
+    }
+
+    function enableDrag(element, node) {
+      let dragging = false;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      element.addEventListener("pointerdown", event => {
+        dragging = true;
+        node.fixed = true;
+        element.setPointerCapture(event.pointerId);
+        const point = toSvgPoint(event);
+        offsetX = node.x - point.x;
+        offsetY = node.y - point.y;
+        event.stopPropagation();
+      });
+
+      element.addEventListener("pointermove", event => {
+        if (!dragging) return;
+        const point = toSvgPoint(event);
+        node.x = point.x + offsetX;
+        node.y = point.y + offsetY;
+        clampNode(node);
+      });
+
+      element.addEventListener("pointerup", event => {
+        dragging = false;
+        element.releasePointerCapture(event.pointerId);
+      });
+    }
+
+    svg.addEventListener("wheel", event => {
+      event.preventDefault();
+      zoom = Math.max(0.4, Math.min(2.8, zoom * (event.deltaY < 0 ? 1.08 : 0.92)));
+      updateViewport();
+    }, { passive: false });
+
+    svg.addEventListener("pointerdown", event => {
+      if (event.target !== svg) return;
+      panning = true;
+      startX = event.clientX - panX;
+      startY = event.clientY - panY;
+      svg.style.cursor = "grabbing";
+    });
+
+    svg.addEventListener("pointermove", event => {
+      if (!panning) return;
+      panX = event.clientX - startX;
+      panY = event.clientY - startY;
+      updateViewport();
+    });
+
+    svg.addEventListener("pointerup", () => {
+      panning = false;
+      svg.style.cursor = "grab";
+    });
+
+    document.getElementById("center").addEventListener("click", () => {
+      zoom = 1;
+      panX = 0;
+      panY = 0;
+      updateViewport();
+      assignAnchors(true);
+    });
+
+    svg.addEventListener("click", event => {
+      if (event.target === svg) resetSelection();
+    });
+
+    window.addEventListener("resize", () => {
+      W = chart.clientWidth || W;
+      H = chart.clientHeight || H;
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      assignAnchors(false);
+    });
+
+    applyFilters();
+    tick();
+  </script>
+</body>
+</html>
