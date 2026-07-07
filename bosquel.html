@@ -141,7 +141,23 @@ const graphData = {
     {"id": "Bloomberg", "label": "Bloomberg", "group": "Médias / sources cités", "size": 15, "detail": "Agence d'information financière internationale. Source de référence concernant les dynamiques globales de retrait de Fluidstack."}, 
     {"id": "L’Informé", "label": "L’Informé", "group": "Médias / sources cités", "size": 15, "detail": "Média d'investigation économique ayant mis au jour le différend commercial opposant Sesterce à Mistral AI."}, 
     {"id": "Les Électrons libres", "label": "Les Électrons libres", "group": "Médias / sources cités", "size": 12, "detail": "Média spécialisé dans l'énergie. A documenté l'hypothèse d'un désaccord de nature strictement financière concernant le pivot de Fluidstack."}, 
-    {"id": "actu.fr", "label": "actu.fr", "group": "Médias / sources cités", "size": 12, "detail": "Réseau d'information locale ayant apporté des précisions géographiques sur l'emprise foncière exacte de la ZAC."}
+    {"id": "actu.fr", "label": "actu.fr", "group": "Médias / sources cités", "size": 12, "detail": "Réseau d'information locale ayant apporté des précisions géographiques sur l'emprise foncière exacte de la ZAC."}, 
+    {"id": "Emilie Piette", "label": "E. Piette", "group": "Élus / acteurs institutionnels", "size": 15, "detail": "Présidente de RTE, alerte sur l'encombrement du réseau et la spéculation."},
+    {"id": "Xavier Bertrand", "label": "X. Bertrand", "group": "Élus / acteurs institutionnels", "size": 15, "detail": "Président de la Région Hauts-de-France, défend fermement l'IA Factory."},
+    {"id": "Nicolas Daragon", "label": "N. Daragon", "group": "Élus / acteurs institutionnels", "size": 12, "detail": "Président de Valence Romans Agglo, favorable au projet Sesterce."},
+    {"id": "Me Louis Cofflard", "label": "Me Cofflard", "group": "Opposants / critiques nommément cités", "size": 14, "detail": "Avocat d'Assez-DC, attaque le contournement ICPE de Sesterce."},
+    {"id": "Assez Datacenter", "label": "Assez-DC", "group": "Noyau d’opposition local", "size": 18, "detail": "Collectif attaquant le permis de construire du data center d'Alixan."},
+    {"id": "Les Soulèvements de la Terre", "label": "Soulèvements", "group": "Noyau d’opposition local", "size": 12, "detail": "Association écologiste co-requérante dans la Drôme."},
+    {"id": "Attac", "label": "Attac", "group": "Noyau d’opposition local", "size": 12, "detail": "Association altermondialiste impliquée dans le recours."},
+    {"id": "Les Amis de la Terre", "label": "Amis Terre", "group": "Noyau d’opposition local", "size": 12, "detail": "Association écologiste impliquée dans le recours contre Sesterce."},
+    {"id": "Schneider Electric", "label": "Schneider", "group": "Porte-parole / entreprises associées", "size": 15, "detail": "Partenaire de SoftBank pour les infrastructures de cloud computing."},
+    {"id": "Data4", "label": "Data4", "group": "Porteurs / institutions du projet", "size": 12, "detail": "Opérateur bénéficiaire du fast track à Cambrai."},
+    {"id": "Brookfield", "label": "Brookfield", "group": "Porteurs / institutions du projet", "size": 12, "detail": "Fonds d'investissement impliqué sur le site de Cambrai."},
+    {"id": "Faille ICPE / Sécurité", "label": "Faille ICPE", "group": "Points de vigilance / griefs", "size": 16, "detail": "Accusation de minoration de puissance pour éviter l'enquête publique."},
+    {"id": "Spéculation capacitaire", "label": "Spéculation", "group": "Points de vigilance / griefs", "size": 16, "detail": "Problématique des réservations électriques abusives selon RTE."},
+    {"id": "BFMTV", "label": "BFMTV", "group": "Médias / sources cités", "size": 10, "detail": "Couverture des enjeux de raccordement RTE."},
+    {"id": "Libération", "label": "Libération", "group": "Médias / sources cités", "size": 10, "detail": "Couverture du recours juridique dans la Drôme."},
+    {"id": "L'Opinion", "label": "L'Opinion", "group": "Médias / sources cités", "size": 10, "detail": "Analyse sur la souveraineté et l'acceptation locale."}
   ], 
   "links": [
     {"source": "Campus numérique et industriel du Bosquel", "target": "ZAC du Bosquel", "kind": "rôle / lien projet"}, 
@@ -261,7 +277,18 @@ const graphData = {
     {"source": "Mistral AI", "target": "L’Informé", "kind": "source / couverture"}, 
     {"source": "Fluidstack", "target": "Les Électrons libres", "kind": "source / couverture"}, 
     {"source": "ZAC du Bosquel", "target": "actu.fr", "kind": "source / couverture"}, 
-    {"source": "Robert Fievet", "target": "Courrier picard", "kind": "source / couverture"}
+    {"source": "Robert Fievet", "target": "Courrier picard", "kind": "source / couverture"}, 
+    {"source": "Emilie Piette", "target": "RTE", "kind": "Dirige"},
+    {"source": "Xavier Bertrand", "target": "Région Hauts-de-France", "kind": "Préside"},
+    {"source": "Assez Datacenter", "target": "Me Louis Cofflard", "kind": "Mandate"},
+    {"source": "Me Louis Cofflard", "target": "Sesterce", "kind": "Attaque en justice"},
+    {"source": "Me Louis Cofflard", "target": "Faille ICPE / Sécurité", "kind": "Porte l'argument"},
+    {"source": "Les Soulèvements de la Terre", "target": "Assez Datacenter", "kind": "Membre de"},
+    {"source": "Attac", "target": "Assez Datacenter", "kind": "Membre de"},
+    {"source": "Les Amis de la Terre", "target": "Assez Datacenter", "kind": "Membre de"},
+    {"source": "Nicolas Daragon", "target": "Sesterce", "kind": "Soutient localement"},
+    {"source": "Schneider Electric", "target": "SoftBank Group", "kind": "Partenaire d'infrastructure"},
+    {"source": "Emilie Piette", "target": "Spéculation capacitaire", "kind": "Dénonce"}
   ]
 };
 
