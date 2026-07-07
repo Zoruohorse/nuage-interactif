@@ -195,16 +195,18 @@ const graphData = {
     {"id":"Marsactu","label":"Marsactu","group":"Médias / sources","size":14,"detail":"Source d'analyse critique sur RTE, espèces protégées et controverses territoriales."},
     {"id":"GoMet","label":"GoMet","group":"Médias / sources","size":14,"detail":"Source sur débat industriel, Syrius et Parc naturel régional des étangs."},
     {"id":"La Tribune Région Sud","label":"La Tribune\nRégion Sud","group":"Médias / sources","size":14,"detail":"Source sur NGE, GravitHy, Newcleo, filières industrielles et énergétiques."},
-    {"id":"Tourduvalat.org","label":"Tour du Valat\n(source)","group":"Médias / sources","size":14,"detail":"Source scientifique sur zones humides, oiseaux d'eau, tourbières et Camargue."}
+    {"id":"Tourduvalat.org","label":"Tour du Valat\n(source)","group":"Médias / sources","size":14,"detail":"Source scientifique sur zones humides, oiseaux d'eau, tourbières et Camargue."},
+    {"id": "Cédric Bernardi", "label": "Cédric\nBernardi", "group": "Opposants agricoles", "size": 20, "detail": "[MISE À JOUR] Riziculteur (ASTCC). Passe à l'action directe en bloquant physiquement l'accès de ses terres aux agents RTE avec tracteur et drone."},
+    {"id": "Carole Guintoli", "label": "Carole\nGuintoli", "group": "sants agricoles", "size": 16, "detail": "[MISE À JOUR] Rizicultrice bio en Camargue (ASTCC). Fait barrage aux naturalistes de RTE pour empêcher la réalisation des inventaires écologiques."}
   ],
   "links": [
     {"source":"RTE","target":"Ligne THT Fos-Jonquières","kind":"Maître d'ouvrage"},
-    {"source":"Patrick de Carolis","target":"Ligne THT Fos-Jonquières","kind":"Opposé"},
-    {"source":"Collectif THT 13/30","target":"Ligne THT Fos-Jonquières","kind":"Opposé"},
+    {"source":"Patrick de Carolis","target":"Ligne THT Fos-Jonquières","kind":"sé"},
+    {"source":"Collectif THT 13/30","target":"Ligne THT Fos-Jonquières","kind":"sé"},
     {"source":"Jean-Luc Moya","target":"Collectif THT 13/30","kind":"Porte-parole"},
     {"source":"Cédric Bernardi","target":"Collectif THT 13/30","kind":"Membre"},
-    {"source":"Séverine Dellanegra","target":"Ligne THT Fos-Jonquières","kind":"Opposée"},
-    {"source":"Emmanuel Taché","target":"Ligne THT Fos-Jonquières","kind":"Opposé"},
+    {"source":"Séverine Dellanegra","target":"Ligne THT Fos-Jonquières","kind":"sée"},
+    {"source":"Emmanuel Taché","target":"Ligne THT Fos-Jonquières","kind":"sé"},
     {"source":"France Chimie Méditerranée","target":"Ligne THT Fos-Jonquières","kind":"Soutien"},
     {"source":"Renaud Muselier","target":"Ligne THT Fos-Jonquières","kind":"Critique nuancé"},
     {"source":"Ligne THT Fos-Jonquières","target":"Jean-Luc Moya","kind":"position / rattachement au dossier"},
@@ -408,13 +410,15 @@ const graphData = {
     {"source":"Ligne THT Fos-Jonquières","target":"Marsactu","kind":"source / couverture"},
     {"source":"Ligne THT Fos-Jonquières","target":"GoMet","kind":"source / couverture"},
     {"source":"Ligne THT Fos-Jonquières","target":"La Tribune Région Sud","kind":"source / couverture"},
-    {"source":"Ligne THT Fos-Jonquières","target":"Tourduvalat.org","kind":"source / couverture"}
+    {"source":"Ligne THT Fos-Jonquières","target":"Tourduvalat.org","kind":"source / couverture"}, 
+    {"source": "Cédric Bernardi", "target": "RTE", "kind": "blocage sur le terrain"},
+    {"source": "Carole Guintoli", "target": "RTE", "kind": "blocage sur le terrain"}
   ]
 };
 
 // Logique moteur relationnel
 const graph = graphData;
-const colors = {"Projet central": "#111827", "Opposants structurants": "#b91c1c", "Opposants agricoles": "#c2410c", "Opposants juridiques": "#7c2d12", "Opposants experts": "#a16207", "Opposants citoyens": "#ea580c", "Opposants associatifs": "#991b1b", "Critiques nuancés": "#92400e", "Critiques connexes": "#78716c", "Élus opposés / critiques": "#7c3aed", "Élus prudents / nuancés": "#6d28d9", "Élus favorables / institutionnels": "#2563eb", "État / institutions": "#1d4ed8", "Porteurs / soutiens industriels": "#0369a1", "Projets industriels / énergie": "#0e7490", "Collectifs / associations opposées": "#15803d", "Organisations agricoles": "#65a30d", "Acteurs biodiversité / espaces protégés": "#059669", "Experts / débat public": "#475569", "Médias / sources": "#64748b"};
+const colors = {"Projet central": "#111827", "sants structurants": "#b91c1c", "sants agricoles": "#c2410c", "Opposants juridiques": "#7c2d12", "Opposants experts": "#a16207", "Opposants citoyens": "#ea580c", "Opposants associatifs": "#991b1b", "Critiques nuancés": "#92400e", "Critiques connexes": "#78716c", "Élus opposés / critiques": "#7c3aed", "Élus prudents / nuancés": "#6d28d9", "Élus favorables / institutionnels": "#2563eb", "État / institutions": "#1d4ed8", "Porteurs / soutiens industriels": "#0369a1", "Projets industriels / énergie": "#0e7490", "Collectifs / associations opposées": "#15803d", "Organisations agricoles": "#65a30d", "Acteurs biodiversité / espaces protégés": "#059669", "Experts / débat public": "#475569", "Médias / sources": "#64748b"};
 const groups = Object.keys(colors);
 const central = "Ligne THT Fos-Jonquières";
 
