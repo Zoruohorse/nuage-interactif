@@ -151,7 +151,15 @@ const graphData = {
     {"id": "news.google.com", "label": "news.google.com", "group": "Médias / sources cités", "size": 15, "detail": "Agrégateur d'actualités ayant relayé le sujet."},
     {"id": "Ouest-France", "label": "Ouest-France", "group": "Médias / sources cités", "size": 15, "detail": "Média national ayant interviewé la direction de Google France."},
     {"id": "Risque d'incendie", "label": "Risque\nd'incendie", "group": "Points de vigilance / griefs", "size": 15, "detail": "Inquiétude formulée aux Pennes-Mirabeau face au dégagement thermique près d'une pinède."},
-    {"id": "Saucissonnage de projet", "label": "Saucissonnage", "group": "Points de vigilance / griefs", "size": 15, "detail": "Contournement suspecté de la réglementation environnementale (cas de Wissous)."}
+    {"id": "Saucissonnage de projet", "label": "Saucissonnage", "group": "Points de vigilance / griefs", "size": 15, "detail": "Contournement suspecté de la réglementation environnementale (cas de Wissous)."}, 
+    {"id": "Pierre Allorant", "label": "P. Allorant\n(Ceser)", "group": "Concertation / institutions publiques", "size": 15, "detail": "Président du Ceser Centre-Val de Loire, prévoit un rapport consultatif sur le projet après saisine citoyenne."},
+    {"id": "Ceser", "label": "Ceser", "group": "Concertation / institutions publiques", "size": 20, "detail": "Conseil économique, social et environnemental régional, saisi par les citoyens pour évaluer l'impact du data center."},
+    {"id": "CGT Indre", "label": "CGT", "group": "Noyau d’opposition local", "size": 17, "detail": "Syndicat co-organisateur des manifestations et moteur de la saisine citoyenne au Ceser."},
+    {"id": "Delphine Chambonneau", "label": "D. Chambonneau", "group": "Opposants / critiques nommément cités", "size": 12, "detail": "Élue d'opposition de Châteauroux ayant voté contre le raccordement électrique en conseil communautaire."},
+    {"id": "Bruno Mascle", "label": "B. Mascle", "group": "Opposants / critiques nommément cités", "size": 12, "detail": "Élu d'opposition de Déols ayant voté contre le raccordement électrique en conseil communautaire."},
+    {"id": "Anne Le Hénanff", "label": "A. Le Hénanff", "group": "Élus / acteurs favorables ou moteurs", "size": 17, "detail": "Ministre déléguée chargée de l'IA et du Numérique, soutient activement l'implantation au nom de la souveraineté."},
+    {"id": "CTR de Châteauroux", "label": "CTR Châteauroux", "group": "Projet central", "size": 15, "detail": "Ancien centre de données régional en fermeture, illustrant la transition vers les méga-hubs très denses en énergie."},
+    {"id": "Multinationales.org", "label": "Multinationales", "group": "Médias / sources cités", "size": 15, "detail": "Média indépendant publiant de longues enquêtes sur les stratégies d'influence des GAFAM."}
   ], 
   "links": [
     {"source": "Data center Google — Ozans / Étrechet", "target": "ZAC d’Ozans", "kind": "rôle / position"}, 
@@ -279,7 +287,16 @@ const graphData = {
     {"source": "CNDP", "target": "Marie-Claire Eustache", "kind": "mandat"},
     {"source": "CNDP", "target": "Romane Harmel-Samarcq", "kind": "mandat"},
     {"source": "Cézanne", "target": "Risque d'incendie", "kind": "critique associée"},
-    {"source": "Associations de Wissous", "target": "Saucissonnage de projet", "kind": "critique associée"}
+    {"source": "Associations de Wissous", "target": "Saucissonnage de projet", "kind": "critique associée"}, 
+    {"source": "Pierre Allorant", "target": "Ceser", "kind": "rattachement / interaction"},
+    {"source": "Ozans dire non", "target": "Ceser", "kind": "saisine citoyenne"},
+    {"source": "CGT Indre", "target": "Ozans dire non", "kind": "rattachement / interaction"},
+    {"source": "Delphine Chambonneau", "target": "Consommation électrique", "kind": "opposition"},
+    {"source": "Bruno Mascle", "target": "Consommation électrique", "kind": "opposition"},
+    {"source": "Éric Domenge-Abeau", "target": "Consommation électrique", "kind": "opposition"},
+    {"source": "Anne Le Hénanff", "target": "Souveraineté numérique", "kind": "défense / promotion"},
+    {"source": "CTR de Châteauroux", "target": "Data center Google — Ozans / Étrechet", "kind": "contraste / remplacement"},
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Multinationales.org", "kind": "source / couverture"}
   ]
 };
 
