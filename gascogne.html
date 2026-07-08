@@ -116,7 +116,10 @@ const graphData = {
     {"id": "DDTM", "label": "DDTM", "group": "Institutions publiques", "size": 14, "detail": "Service de l’État cité parmi les autorités supervisant le suivi environnemental.", "position": "Supervision et contrôle environnementaux.", "evidence": "Le rapport cite la DDTM parmi les services de l’État assurant la supervision."},
     {"id": "OFB", "label": "OFB", "group": "Institutions publiques", "size": 14, "detail": "Service de l’État cité parmi les autorités supervisant le suivi environnemental.", "position": "Supervision et contrôle environnementaux.", "evidence": "Le rapport cite l’OFB parmi les services de l’État assurant la supervision."},
     {"id": "Écologue missionné par RTE", "label": "Écologue RTE", "group": "Acteurs seulement cités", "size": 12, "detail": "Écologue non nommé, missionné par RTE pour la surveillance environnementale.", "position": "Rôle de suivi ; aucune position personnelle rapportée.", "evidence": "Le rapport mentionne la surveillance de « l’écologue missionné par RTE »."},
-    {"id": "Chercheur spécialiste du suivi morphologique du canyon (anonyme)", "label": "Chercheur anonyme", "group": "Acteurs seulement cités", "size": 12, "detail": "Chercheur non identifié, cité au sujet du gouf de Capbreton.", "position": "Apporte une expertise technique sur l’impossibilité de faire passer les câbles dans le canyon ; aucune position globale sur le projet n’est rapportée.", "evidence": "Il évoque un canyon actif et la mouvance du fond, et a requis l’anonymat."}
+    {"id": "Chercheur spécialiste du suivi morphologique du canyon (anonyme)", "label": "Chercheur anonyme", "group": "Acteurs seulement cités", "size": 12, "detail": "Chercheur non identifié, cité au sujet du gouf de Capbreton.", "position": "Apporte une expertise technique sur l’impossibilité de faire passer les câbles dans le canyon ; aucune position globale sur le projet n’est rapportée.", "evidence": "Il évoque un canyon actif et la mouvance du fond, et a requis l’anonymat."},
+    {"id": "Maires de MACS et littoral", "label": "Maires MACS\net littoral", "group": "Élus / acteurs institutionnels", "size": 18, "detail": "Maires de Seignosse, Hossegor, Capbreton, Angresse, Bénesse-Maremne et MACS réclamant une étude sanitaire indépendante."},
+    {"id": "Save la Mermaid", "label": "Save la\nMermaid", "group": "Noyau d’opposition local", "size": 15, "detail": "Association environnementale mobilisée aux côtés de Stop THT 40 sur la plage du Penon."}
+  ],
   ],
   "links": [
     {"source": "RTE", "target": "Interconnexion France–Espagne par le Golfe de Gascogne", "kind": "portage du projet", "evidence": "RTE est le porteur français du projet."},
@@ -205,7 +208,9 @@ const graphData = {
     {"source": "OFB", "target": "Interconnexion France–Espagne par le Golfe de Gascogne", "kind": "supervision environnementale", "evidence": "L’OFB est cité parmi les services de l’État assurant la supervision."},
     {"source": "Écologue missionné par RTE", "target": "RTE", "kind": "mission", "evidence": "Le rapport le décrit comme missionné par RTE."},
     {"source": "Écologue missionné par RTE", "target": "Interconnexion France–Espagne par le Golfe de Gascogne", "kind": "suivi environnemental", "evidence": "Sa surveillance est citée parmi les dispositifs de respect des prescriptions environnementales."},
-    {"source": "Chercheur spécialiste du suivi morphologique du canyon (anonyme)", "target": "Interconnexion France–Espagne par le Golfe de Gascogne", "kind": "expertise technique", "evidence": "Il explique l’impossibilité de faire passer des câbles dans le gouf de Capbreton."}
+    {"source": "Chercheur spécialiste du suivi morphologique du canyon (anonyme)", "target": "Interconnexion France–Espagne par le Golfe de Gascogne", "kind": "expertise technique", "evidence": "Il explique l’impossibilité de faire passer des câbles dans le gouf de Capbreton."},
+    {"source": "Maires de MACS et littoral", "target": "Interconnexion France–Espagne par le Golfe de Gascogne", "kind": "demande d'étude indépendante"},
+    {"source": "Save la Mermaid", "target": "StopTHT40", "kind": "mobilisation commune"}
   ]
 };
 </script>
