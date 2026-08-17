@@ -141,7 +141,9 @@ const graphData = {
     {"id": "Ademe", "label": "Ademe", "group": "Acteurs institutionnels / techniques", "size": 17, "detail": "Agence prévoyant le quadruplement de la consommation électrique de ces infrastructures."},
     {"id": "Gouvernement français", "label": "Gouvernement\nfrançais", "group": "Acteurs institutionnels / techniques", "size": 19, "detail": "Soutient les investissements massifs dans les giga data centers."},
     {"id": "EDF", "label": "EDF", "group": "Acteurs institutionnels / techniques", "size": 17, "detail": "Énergéticien qui a besoin des data centers comme relais de croissance selon la filière."},
-    {"id": "news.google.com", "label": "news.google.com", "group": "Médias / relais / lieux cités", "size": 15, "detail": "Agrégateur ayant relayé l'analyse nationale sur les tensions liées aux data centers."}
+    {"id": "news.google.com", "label": "news.google.com", "group": "Médias / relais / lieux cités", "size": 15, "detail": "Agrégateur ayant relayé l'analyse nationale sur les tensions liées aux data centers."},
+    {"id": "Christian Pellicani", "label": "C. Pellicani\n(MNLE)", "group": "Opposants nommés", "size": 17, "detail": "Président du MNLE, dénonce le contournement des procédures et annonce de nouveaux recours."},
+    {"id": "MNLE Réseau Humanité et Nature", "label": "MNLE\nHumanité et Nature", "group": "Réseau élargi anti-data centers", "size": 19, "detail": "Association co-dépositaire d'un recours environnemental majeur avec les riverains."}
   ],
   "links": [
     {"source": "Data center Cézanne — Sybilles", "target": "Collectif Non au data center", "kind": "position / rôle"}, 
@@ -225,7 +227,12 @@ const graphData = {
     {"source": "Maxime Colin", "target": "France Nature Environnement", "kind": "représentation"},
     {"source": "Maxime Efoui-Hess", "target": "Shift Project", "kind": "représentation"},
     {"source": "Michaël Reffay", "target": "France Datacenter", "kind": "représentation"},
-    {"source": "France Datacenter", "target": "EDF", "kind": "soutien indirect"}
+    {"source": "France Datacenter", "target": "EDF", "kind": "soutien indirect"},
+    {"source": "Christian Pellicani", "target": "MNLE Réseau Humanité et Nature", "kind": "représentation"},
+    {"source": "MNLE Réseau Humanité et Nature", "target": "Collectif Non au data center", "kind": "soutien juridique"},
+    {"source": "MNLE Réseau Humanité et Nature", "target": "Data center Cézanne — Sybilles", "kind": "recours environnemental"},
+    {"source": "Philippe Chabeaudy", "target": "CIQ des Pallières", "kind": "rattachement"},
+    {"source": "Data center Cézanne — Sybilles", "target": "MNLE Réseau Humanité et Nature", "kind": "opposition juridique"}
   ]
 };
 
