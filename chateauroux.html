@@ -159,7 +159,18 @@ const graphData = {
     {"id": "Bruno Mascle", "label": "B. Mascle", "group": "Opposants / critiques nommément cités", "size": 12, "detail": "Élu d'opposition de Déols ayant voté contre le raccordement électrique en conseil communautaire."},
     {"id": "Anne Le Hénanff", "label": "A. Le Hénanff", "group": "Élus / acteurs favorables ou moteurs", "size": 17, "detail": "Ministre déléguée chargée de l'IA et du Numérique, soutient activement l'implantation au nom de la souveraineté."},
     {"id": "CTR de Châteauroux", "label": "CTR Châteauroux", "group": "Projet central", "size": 15, "detail": "Ancien centre de données régional en fermeture, illustrant la transition vers les méga-hubs très denses en énergie."},
-    {"id": "Multinationales.org", "label": "Multinationales", "group": "Médias / sources cités", "size": 15, "detail": "Média indépendant publiant de longues enquêtes sur les stratégies d'influence des GAFAM."}
+    {"id": "Multinationales.org", "label": "Multinationales", "group": "Médias / sources cités", "size": 15, "detail": "Média indépendant publiant de longues enquêtes sur les stratégies d'influence des GAFAM."},
+    {"id": "Lénéo", "label": "Lénéo", "group": "Porteurs / institutions du projet", "size": 17, "detail": "Start-up portant un projet de méthaniseur / centrale biomasse sur la ZAC d'Ozans."},
+    {"id": "Fred Gagnot", "label": "F. Gagnot\n(Conf. Paysanne)", "group": "Organisations agricoles / foncières", "size": 15, "detail": "Porte-parole local s'inquiétant de la ponction sur les ressources en eau et en paille."},
+    {"id": "Nicolas Pailloux", "label": "N. Pailloux\n(Chambre Agri)", "group": "Organisations agricoles / foncières", "size": 15, "detail": "Président de la chambre d'agriculture, attentif aux équilibres du marché de la biomasse."},
+    {"id": "Alterric", "label": "Alterric", "group": "Porte-parole / entreprises associées", "size": 15, "detail": "Développeur éolien utilisant le data center pour justifier de nouveaux parcs."},
+    {"id": "Philippe Latombe", "label": "P. Latombe", "group": "Élus / acteurs institutionnels", "size": 18, "detail": "Député appelant à un moratoire sur les implantations GAFAM et alertant sur le kill switch."},
+    {"id": "Arcep", "label": "Arcep", "group": "Élus / acteurs institutionnels", "size": 16, "detail": "Autorité alertant sur l'explosion de l'empreinte environnementale du numérique."},
+    {"id": "Guillaume Allart", "label": "G. Allart\n(Shift Project)", "group": "Opposants / critiques nommément cités", "size": 15, "detail": "Économiste alertant sur les conflits d'usage liés à l'eau et à la biomasse."},
+    {"id": "Anti", "label": "Anti\n(Le Nuage)", "group": "Opposants / critiques nommément cités", "size": 15, "detail": "Militant dénonçant une stratégie de prédation des Big Tech sur les territoires précarisés."},
+    {"id": "Mehdi Nezzar", "label": "Mehdi Nezzar", "group": "Élus / acteurs institutionnels", "size": 15, "detail": "Maire du Bourget ayant invalidé un permis de construire de data center."},
+    {"id": "Nicolas Celnik", "label": "N. Celnik", "group": "Médias / sources cités", "size": 14, "detail": "Journaliste comparant les luttes contre les data centers à celles de Sainte-Soline."}
+
   ], 
   "links": [
     {"source": "Data center Google — Ozans / Étrechet", "target": "ZAC d’Ozans", "kind": "rôle / position"}, 
@@ -296,7 +307,17 @@ const graphData = {
     {"source": "Éric Domenge-Abeau", "target": "Consommation électrique", "kind": "opposition"},
     {"source": "Anne Le Hénanff", "target": "Souveraineté numérique", "kind": "défense / promotion"},
     {"source": "CTR de Châteauroux", "target": "Data center Google — Ozans / Étrechet", "kind": "contraste / remplacement"},
-    {"source": "Data center Google — Ozans / Étrechet", "target": "Multinationales.org", "kind": "source / couverture"}
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Multinationales.org", "kind": "source / couverture"},
+    {"source": "ZAC d’Ozans", "target": "Lénéo", "kind": "implantation concurrente"},
+    {"source": "Lénéo", "target": "Fred Gagnot", "kind": "opposition ressource"},
+    {"source": "Lénéo", "target": "Nicolas Pailloux", "kind": "vigilance marché"},
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Alterric", "kind": "alibi énergétique"},
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Philippe Latombe", "kind": "cible moratoire"},
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Arcep", "kind": "évaluation macro"},
+    {"source": "Lénéo", "target": "Guillaume Allart", "kind": "analyse critique"},
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Anti", "kind": "opposition nationale"},
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Mehdi Nezzar", "kind": "inspiration lutte"},
+    {"source": "Data center Google — Ozans / Étrechet", "target": "Nicolas Celnik", "kind": "couverture médiatique"}
   ]
 };
 
