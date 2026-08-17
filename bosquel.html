@@ -157,7 +157,11 @@ const graphData = {
     {"id": "Spéculation capacitaire", "label": "Spéculation", "group": "Positions critiques / points de vigilance", "size": 16, "detail": "Problématique des réservations électriques abusives selon RTE."},
     {"id": "BFMTV", "label": "BFMTV", "group": "Médias / sources cités", "size": 12, "detail": "Couverture des enjeux de raccordement RTE."},
     {"id": "Libération", "label": "Libération", "group": "Médias / sources cités", "size": 12, "detail": "Couverture du recours juridique dans la Drôme."},
-    {"id": "L'Opinion", "label": "L'Opinion", "group": "Médias / sources cités", "size": 12, "detail": "Analyse sur la souveraineté et l'acceptation locale."}
+    {"id": "L'Opinion", "label": "L'Opinion", "group": "Médias / sources cités", "size": 12, "detail": "Analyse sur la souveraineté et l'acceptation locale."},
+    {"id": "Ynsect", "label": "Friche Ynsect", "group": "Positions critiques / points de vigilance", "size": 17, "detail": "Ancien site industriel à Poulainville, pressenti pour accueillir un nouveau data center de 700 MW."},
+    {"id": "Banque des territoires", "label": "Banque des Territoires", "group": "État / acteurs publics nationaux", "size": 15, "detail": "Institution publique soutenant la reconversion de la friche Ynsect."},
+    {"id": "Hadrien Godard", "label": "H. Godard\n(Ex-Ynsect)", "group": "Positions critiques / points de vigilance", "size": 15, "detail": "Ancien représentant du personnel, dénonce une reconversion en data center comme un scandale environnemental."}
+    
   ], 
   "links": [
     {"source": "Campus numérique et industriel du Bosquel", "target": "ZAC du Bosquel", "kind": "rôle / lien projet"}, 
@@ -293,7 +297,12 @@ const graphData = {
     {"source": "Emilie Piette", "target": "Spéculation capacitaire", "kind": "interaction / rattachement"},
     {"source": "Campus numérique et industriel du Bosquel", "target": "BFMTV", "kind": "source / couverture"},
     {"source": "Campus numérique et industriel du Bosquel", "target": "Libération", "kind": "source / couverture"},
-    {"source": "Campus numérique et industriel du Bosquel", "target": "L'Opinion", "kind": "source / couverture"}
+    {"source": "Campus numérique et industriel du Bosquel", "target": "L'Opinion", "kind": "source / couverture"},
+    {"source": "Campus numérique et industriel du Bosquel", "target": "Ynsect", "kind": "proximité / cumul d'impacts"},
+    {"source": "Ynsect", "target": "Banque des territoires", "kind": "financement public"},
+    {"source": "Ynsect", "target": "Hadrien Godard", "kind": "opposition citoyenne"},
+    {"source": "SoftBank Group", "target": "Schneider Electric", "kind": "partenariat confirmé"},
+    {"source": "SoftBank Group", "target": "EDF", "kind": "partenariat confirmé"}
   ]
 };
 
