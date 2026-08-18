@@ -113,7 +113,13 @@ const graphData = {
     {"id": "STL", "label": "STL", "group": "Porteurs industriels", "size": 15, "detail": "Filiale basée à Ruitz, conservant son implantation originelle."},
     {"id": "Canal Seine-Nord Europe", "label": "Canal\nSeine-Nord", "group": "Énergie / raccordement / foncier", "size": 18, "detail": "Grand chantier d'infrastructure ciblé par la stratégie de développement de Foselev."},
     {"id": "Projets Datacenters", "label": "Projets\nDatacenters", "group": "Énergie / raccordement / foncier", "size": 18, "detail": "Marché territorial global visé par l'offre de construction modulaire et de maintenance."},
-    {"id": "Gigafactories", "label": "Gigafactories", "group": "Énergie / raccordement / foncier", "size": 18, "detail": "Usines de batteries en développement, représentant un relais de croissance majeur dans la région."}
+    {"id": "Gigafactories", "label": "Gigafactories", "group": "Énergie / raccordement / foncier", "size": 18, "detail": "Usines de batteries en développement, représentant un relais de croissance majeur dans la région."},
+    {"id": "Sikander Rashid", "label": "S. Rashid\n(Brookfield)", "group": "Porteurs industriels", "size": 16, "detail": "Responsable de Brookfield, souligne l'avantage du nucléaire français."},
+    {"id": "Brookfield", "label": "Brookfield", "group": "Porteurs industriels", "size": 20, "detail": "Gestionnaire canadien portant son investissement à 30 milliards d'euros dans les infrastructures IA."},
+    {"id": "Usine d'Angers", "label": "Usine d'Angers", "group": "Porteurs industriels", "size": 17, "detail": "Seul site européen d'assemblage de supercalculateurs, au cœur du dispositif technique de SoftBank."},
+    {"id": "Bouchain", "label": "Bouchain", "group": "Projet central", "size": 16, "detail": "Site nordiste complémentaire à Dunkerque et Bosquel pour absorber les 3,1 GW de SoftBank."},
+    {"id": "La Voix de France", "label": "La Voix de France", "group": "Médias / sources cités", "size": 15, "detail": "Média couvrant les annonces du sommet Choose France et la macro-économie des datacenters."},
+    {"id": "Journal du Net", "label": "JDN", "group": "Médias / sources cités", "size": 15, "detail": "Analyse le nouveau paradigme de la souveraineté numérique par les infrastructures physiques."}
   ], 
   "links": [
     {"source": "Data center SoftBank — Loon-Plage / Dunkerque", "target": "Usine de modules Schneider — port de Dunkerque", "kind": "rôle / position"}, 
@@ -193,7 +199,13 @@ const graphData = {
     {"source": "Foselev", "target": "Canal Seine-Nord Europe", "kind": "cible stratégique / positionnement"},
     {"source": "Foselev", "target": "Projets Datacenters", "kind": "cible stratégique / positionnement"},
     {"source": "Foselev", "target": "Gigafactories", "kind": "cible stratégique / positionnement"},
-    {"source": "Foselev", "target": "Grand Port Maritime de Dunkerque", "kind": "cible stratégique / positionnement"}
+    {"source": "Foselev", "target": "Grand Port Maritime de Dunkerque", "kind": "cible stratégique / positionnement"},
+    {"source": "Sikander Rashid", "target": "Brookfield", "kind": "représentation"},
+    {"source": "Brookfield", "target": "Data center SoftBank — Loon-Plage / Dunkerque", "kind": "co-investissement"},
+    {"source": "SoftBank Group", "target": "Usine d'Angers", "kind": "dépendance matérielle"},
+    {"source": "SoftBank Group", "target": "Bouchain", "kind": "déploiement régional"},
+    {"source": "Data center SoftBank — Loon-Plage / Dunkerque", "target": "La Voix de France", "kind": "source / couverture"},
+    {"source": "Data center SoftBank — Loon-Plage / Dunkerque", "target": "Journal du Net", "kind": "source / couverture"}
   ]
 };
 
